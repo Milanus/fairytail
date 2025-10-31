@@ -6,9 +6,10 @@ interface Props {
   params: { id: string };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
   try {
-    const story = await fetchStoryById(params.id);
+    const story = await fetchStoryById(id);
 
     if (!story) {
       return {
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: excerpt,
       },
       alternates: {
-        canonical: `/story/${params.id}`,
+        canonical: `/story/${id}`,
       },
     };
   } catch (error) {
@@ -51,7 +52,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function StoryPage({ params }: Props) {
+export default async function StoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <>
       <script
@@ -77,12 +79,12 @@ export default function StoryPage({ params }: Props) {
             "datePublished": new Date().toISOString(),
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://fairytail-platform.web.app/story/${params.id}`
+              "@id": `https://fairytail-platform.web.app/story/${id}`
             }
           })
         }}
       />
-      <StoryPageClient id={params.id} />
+      <StoryPageClient id={id} />
     </>
   );
 }
