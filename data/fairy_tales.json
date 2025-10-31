@@ -1,0 +1,67 @@
+[
+  {
+    "id": "story001",
+    "title": "The Enchanted Forest",
+    "content": "Once upon a time, in a kingdom far away, there was a young prince named Alexander who discovered a magical forest where time stood still. The trees shimmered with an otherworldly glow, and the air was filled with the sweet scent of flowers that bloomed all year round. As he ventured deeper into the forest, he encountered talking animals, mystical creatures, and ancient spirits who shared the secrets of the realm with him. But the most wondrous discovery was yet to come - a crystal-clear pond that reflected not his appearance, but his truest dreams and desires. When he gazed into its waters, he saw not a prince, but a kind and just king who ruled with compassion and wisdom. The forest had shown him the person he could become, and with this knowledge, he returned to his kingdom a changed young man, ready to fulfill his destiny.",
+    "author_id": "user001",
+    "status": "published",
+    "created_at": "2023-05-15T10:30:00Z",
+    "updated_at": "2023-05-15T10:30:00Z",
+    "published_at": "2023-05-16T09:15:00Z",
+    "tags": ["adventure", "magic", "transformation"],
+    "likes_count": 24,
+    "views_count": 120
+  },
+  {
+    "id": "story002",
+    "title": "The Dragon's Secret",
+    "content": "In a village at the foot of the Misty Mountains, a blacksmith's daughter named Elara noticed that the dragons who flew overhead each evening seemed to be in distress. While others in the village feared them, Elara felt compelled to help. She spent months observing their patterns, finally discovering that they were injured and couldn't find a safe place to rest. Elara crafted a special ointment from rare mountain herbs and left it in a cave where the dragons often sheltered. To her amazement, the largest dragon, Pyrithon, returned the next day with a gift - a scale that shimmered like precious gems. This scale became the heart of Elara's most magnificent creation, a suit of armor that could protect its wearer from any harm. But more importantly, she had gained the trust and friendship of the dragons, who from that day forward watched over the village from above, guardians in their own right.",
+    "author_id": "user002",
+    "status": "published",
+    "created_at": "2023-05-10T14:20:00Z",
+    "updated_at": "2023-05-12T11:45:00Z",
+    "published_at": "2023-05-12T16:30:00Z",
+    "tags": ["fantasy", "friendship", "courage"],
+    "likes_count": 18,
+    "views_count": 95
+  },
+  {
+    "id": "story003",
+    "title": "The Moonlit Ball",
+    "content": "In a cottage on the edge of town lived a young woman named Luna who dreamed of attending the grand balls held at the palace. Each night, she would gaze at the palace windows, watching the silhouettes of dancers as they twirled in elegant gowns and fine suits. One evening, as a full moon bathed her room in silver light, a fairy godmother appeared. With a wave of her wand, Luna's simple dress transformed into a gown that sparkled like starlight, and her worn shoes became delicate slippers that glowed with each step. But the fairy godmother's magic came with a condition - Luna must help others as much as she helped herself. At the ball, Luna spent as much time dancing with lonely servants as she did with the prince. Her kindness was more beautiful than any gown, and it was this quality that truly captured the prince's heart.",
+    "author_id": "user003",
+    "status": "published",
+    "created_at": "2023-05-05T09:15:00Z",
+    "updated_at": "2023-05-05T09:15:00Z",
+    "published_at": "2023-05-06T18:45:00Z",
+    "tags": ["romance", "magic", "kindness"],
+    "likes_count": 32,
+    "views_count": 210
+  },
+  {
+    "id": "story004",
+    "title": "The Lost Mermaid",
+    "content": "Deep beneath the ocean waves lived a mermaid named Seraphina who possessed the most beautiful voice in all the seas. Her songs could calm storms and make the whales dance. But when a curious young sailor named Finn fell overboard during a fierce tempest, Seraphina's voice was the only thing that could save him. She sang him safely to shore, but in doing so, she lost her voice forever. On the beach where Finn awoke, he found a mermaid who could not speak but whose eyes held the depth of the ocean itself. Though they could not communicate through words, Finn and Seraphina discovered that love could be expressed in countless other ways. Finn learned to speak the language of the sea, and Seraphina found new ways to express herself through gestures, expressions, and the gentle movements of her tail. Together, they proved that the strongest connections need no words at all.",
+    "author_id": "user001",
+    "status": "published",
+    "created_at": "2023-04-28T13:45:00Z",
+    "updated_at": "2023-04-28T13:45:00Z",
+    "published_at": "2023-04-29T20:30:00Z",
+    "tags": ["romance", "ocean", "sacrifice"],
+    "likes_count": 41,
+    "views_count": 180
+  },
+  {
+    "id": "story005",
+    "title": "The Brave Little Knight",
+    "content": "Sir Percival was the smallest knight in the kingdom, often overlooked by his fellow warriors who believed that bravery came only in large packages. When the kingdom faced a terrible threat from a fire-breathing dragon, all the mighty knights refused to face the beast. But little Sir Percival, no taller than a sword, volunteered for the dangerous mission. Armed only with his wit and a special shield crafted by the kingdom's finest artisans, he approached the dragon's lair. Instead of fighting, he offered the dragon friendship, noticing that the beast seemed lonely rather than malicious. Through patient conversation, Sir Percival learned that the dragon had been driven from its home by greedy treasure hunters. The knight helped the dragon find a new home and convinced the king to protect it. Sir Percival proved that true bravery comes not from size or strength, but from the willingness to see beyond appearances and act with compassion.",
+    "author_id": "user002",
+    "status": "published",
+    "created_at": "2023-04-22T11:30:00Z",
+    "updated_at": "2023-04-22T11:30:00Z",
+    "published_at": "2023-04-23T15:20:00Z",
+    "tags": ["adventure", "courage", "friendship"],
+    "likes_count": 15,
+    "views_count": 85
+  }
+]

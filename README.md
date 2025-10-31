@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FairyTale Platform
 
-## Getting Started
+Modern Next.js app for browsing, submitting, and managing fairy tales. Built with the App Router, Firebase (Auth, Realtime Database, Storage, Firestore), and Tailwind CSS.
 
-First, run the development server:
+Important: Do NOT commit .env.local to GitHub. Use the provided .env.example to create a local .env.local.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js (App Router)
+- React 19
+- TypeScript
+- Firebase (Auth, Realtime Database, Storage, Firestore)
+- Tailwind CSS 4
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1) Install dependencies:
+   npm install
 
-## Learn More
+2) Create your environment file:
+   - Copy .env.example to .env.local
+   - Fill in your Firebase Web App credentials (see Firebase Setup below)
 
-To learn more about Next.js, take a look at the following resources:
+3) Run the dev server:
+   npm run dev
+   # http://localhost:3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project reads client-safe variables via NEXT_PUBLIC_* from .env.local. Do not commit .env.local.
 
-## Deploy on Vercel
+Variables required:
+- NEXT_PUBLIC_FIREBASE_API_KEY
+- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+- NEXT_PUBLIC_FIREBASE_PROJECT_ID
+- NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+- NEXT_PUBLIC_FIREBASE_APP_ID
+- NEXT_PUBLIC_FIREBASE_DATABASE_URL
+- NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID (optional)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+How to create .env.local:
+- cp .env.example .env.local
+- Fill in values for your Firebase project
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+.gitignore already prevents .env* from being committed. If .env.local was previously tracked, untrack it:
+git rm --cached .env.local
+git commit -m "chore: stop tracking local env file"
+
+If you accidentally pushed secrets, rotate keys immediately in Firebase.
+
+## Firebase Setup
+
+See firebase-setup.md for step-by-step instructions on creating a Firebase project and obtaining your Web App configuration.
+
+Services used:
+- Realtime Database (primary story storage)
+- Storage (optional images)
+- Auth (username/password handled in app)
+- Firestore (available via lib/firebase.ts for future use)
+
+Ensure your database rules are configured in database.rules.json and storage.rules (already included in repo). Deploy rules with Firebase CLI if needed.
+
+## Project Structure (Key Files)
+
+- app/layout.tsx — global layout, SEO metadata
+- app/page.tsx — landing page
+- app/browse/page.tsx — server page that renders the client UI
+- app/browse/Client.tsx — client UI with "use client" at the file top
+- app/story/[id]/page.tsx — server page with dynamic metadata and renders ./Client.tsx
+- app/story/[id]/Client.tsx — client story view and interactions
+- components/Header.tsx — client header (auth-aware)
+- lib/firebase.ts — Firebase initialization (reads NEXT_PUBLIC_* env vars)
+- lib/realtime.ts — Realtime Database helpers (stories)
+- app/robots.ts — robots.txt
+- app/sitemap.ts — dynamic sitemap generation from published stories
+- .env.example — template to create .env.local
+
+## Build and Export
+
+- Standard production build (SSR/Edge as per Next defaults):
+  npm run build
+  npm run start
+
+- Static export:
+  npm run export
+  # Outputs to /out for static hosting (note: dynamic features requiring server cannot run statically)
+
+Firebase Hosting
+- If you use static export, set "public": "out" in firebase.json and deploy:
+  npm run export
+  firebase deploy --only hosting
+
+- For SSR (server-rendered) hosting with Firebase, use Cloud Run or Next.js SSR adapters. Static Firebase Hosting alone does not run SSR.
+
+## SEO
+
+- Global metadata in app/layout.tsx
+- Dynamic per-story metadata via generateMetadata in app/story/[id]/page.tsx
+- Open Graph & Twitter cards
+- robots.txt at app/robots.ts
+- sitemap.xml at app/sitemap.ts (populated from published stories)
+
+## Contributing
+
+- Do not commit secrets or user data
+- Keep "use client" at the very top of client component files
+- Do not export metadata from client files (metadata must be server-side)
+
+## Security
+
+- Never commit .env.local
+- Rotate Firebase keys if leaked
+- Review database.rules.json and storage.rules before production
+
+## Scripts
+
+- npm run dev — start dev server
+- npm run build — build production
+- npm run start — run production server
+- npm run export — static export to /out
+
+## License
+
+MIT (or your preferred license)

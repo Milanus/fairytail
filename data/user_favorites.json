@@ -1,0 +1,32 @@
+[
+  {
+    "id": "fav001",
+    "user_id": "user004",
+    "fairy_tale_id": "story001",
+    "created_at": "2023-05-16T13:00:00Z"
+  },
+  {
+    "id": "fav002",
+    "user_id": "user004",
+    "fairy_tale_id": "story003",
+    "created_at": "2023-05-07T12:00:00Z"
+  },
+  {
+    "id": "fav003",
+    "user_id": "user004",
+    "fairy_tale_id": "story004",
+    "created_at": "2023-04-30T10:30:00Z"
+  },
+  {
+    "id": "fav004",
+    "user_id": "user001",
+    "fairy_tale_id": "story002",
+    "created_at": "2023-05-13T14:45:00Z"
+  },
+  {
+    "id": "fav005",
+    "user_id": "user002",
+    "fairy_tale_id": "story004",
+    "created_at": "2023-04-30T09:15:00Z"
+  }
+]

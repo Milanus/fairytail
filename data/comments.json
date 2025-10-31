@@ -1,0 +1,50 @@
+[
+  {
+    "id": "comment001",
+    "fairy_tale_id": "story001",
+    "author_id": "user002",
+    "content": "This story transported me to another world! I could almost smell those magical flowers.",
+    "created_at": "2023-05-16T14:20:00Z",
+    "updated_at": "2023-05-16T14:20:00Z"
+  },
+  {
+    "id": "comment002",
+    "fairy_tale_id": "story001",
+    "author_id": "user004",
+    "content": "Beautifully written. The character development is exceptional.",
+    "created_at": "2023-05-17T09:45:00Z",
+    "updated_at": "2023-05-17T09:45:00Z"
+  },
+  {
+    "id": "comment003",
+    "fairy_tale_id": "story002",
+    "author_id": "user001",
+    "content": "What a unique take on dragons! I never thought of them as needing help.",
+    "created_at": "2023-05-12T18:30:00Z",
+    "updated_at": "2023-05-12T18:30:00Z"
+  },
+  {
+    "id": "comment004",
+    "fairy_tale_id": "story003",
+    "author_id": "user004",
+    "content": "This is my favorite version of the classic ball story. The emphasis on kindness over appearance is wonderful.",
+    "created_at": "2023-05-07T11:15:00Z",
+    "updated_at": "2023-05-07T11:15:00Z"
+  },
+  {
+    "id": "comment005",
+    "fairy_tale_id": "story004",
+    "author_id": "user002",
+    "content": "The depth of emotion in this story is incredible. I was moved to tears.",
+    "created_at": "2023-04-30T16:40:00Z",
+    "updated_at": "2023-04-30T16:40:00Z"
+  },
+  {
+    "id": "comment006",
+    "fairy_tale_id": "story005",
+    "author_id": "user003",
+    "content": "Sir Percival is an inspiration to us all. Size doesn't matter when it comes to courage!",
+    "created_at": "2023-04-23T18:25:00Z",
+    "updated_at": "2023-04-23T18:25:00Z"
+  }
+]

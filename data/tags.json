@@ -1,0 +1,52 @@
+[
+  {
+    "id": "tag001",
+    "name": "adventure",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag002",
+    "name": "magic",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag003",
+    "name": "fantasy",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag004",
+    "name": "friendship",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag005",
+    "name": "romance",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag006",
+    "name": "courage",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag007",
+    "name": "transformation",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag008",
+    "name": "ocean",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag009",
+    "name": "kindness",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  {
+    "id": "tag010",
+    "name": "sacrifice",
+    "created_at": "2023-01-01T00:00:00Z"
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        ".write": true,
+        ".read": true
+      }
+    },
+    "fairy_tales": {
+      "$storyId": {
+        ".write": true,
+        ".read": true
+      }
+    },
+    "tags": {
+      "$tagName": {
+        ".write": true,
+        ".read": true
+      }
+    },
+    "user_likes": {
+      "$userId": {
+        ".write": true,
+        ".read": true
+      }
+    }
+  }
+}
