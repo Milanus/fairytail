@@ -2,12 +2,8 @@ import type { Metadata } from "next";
 import { fetchStoryById } from "../../../lib/realtime";
 import StoryPageClient from "./Client";
 
-interface Props {
-  params: { id: string };
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
+export async function generateMetadata({ params }: any): Promise<Metadata> {
+  const { id } = await Promise.resolve(params);
   try {
     const story = await fetchStoryById(id);
 
@@ -52,8 +48,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-export default async function StoryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function StoryPage({ params }: any) {
+  const { id } = await Promise.resolve(params);
   return (
     <>
       <script
