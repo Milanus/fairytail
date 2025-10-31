@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Browse Fairy Tales | Fairy Tale Platform",
-  description: "Explore our collection of enchanting fairy tales. Discover magical stories from around the world, filter by tags, and find your next favorite tale.",
-  keywords: ["browse fairy tales", "story collection", "magical stories", "fantasy tales", "children stories"],
+  title: "Procházet Pohádky | Pohádková Platforma",
+  description: "Prozkoumejte naši sbírku kouzelných pohádek. Objevte magické příběhy z celého světa, filtrujte podle štítků a najděte svou další oblíbenou pohádku.",
+  keywords: ["procházet pohádky", "sbírka příběhů", "magické příběhy", "fantastické pohádky", "dětské příběhy"],
   openGraph: {
-    title: "Browse Fairy Tales | Fairy Tale Platform",
-    description: "Explore our collection of enchanting fairy tales from around the world.",
+    title: "Procházet Pohádky | Pohádková Platforma",
+    description: "Prozkoumejte naši sbírku kouzelných pohádek z celého světa.",
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: "Browse Fairy Tales | Fairy Tale Platform",
-    description: "Explore our collection of enchanting fairy tales from around the world.",
+    title: "Procházet Pohádky | Pohádková Platforma",
+    description: "Prozkoumejte naši sbírku kouzelných pohádek z celého světa.",
   },
 };
 

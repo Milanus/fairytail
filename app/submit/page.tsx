@@ -276,7 +276,7 @@ export default function SubmitStory() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
-        <p className="text-xl text-purple-600">Loading...</p>
+        <p className="text-xl text-purple-600">Načítání...</p>
       </div>
     );
   }
@@ -287,16 +287,16 @@ export default function SubmitStory() {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-8 text-center">
-              <h1 className="text-3xl font-bold text-gray-800 mb-6">Login Required</h1>
+              <h1 className="text-3xl font-bold text-gray-800 mb-6">Vyžadováno přihlášení</h1>
               <p className="text-gray-600 mb-8">
-                You must be logged in to submit a story. Please login or create an account to share your fairy tale.
+                Pro odeslání příběhu musíte být přihlášeni. Přihlaste se nebo vytvořte účet pro sdílení vaší pohádky.
               </p>
               <div className="flex justify-center space-x-4">
                 <Link href="/login" className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">
-                  Login
+                  Přihlásit
                 </Link>
                 <Link href="/login?mode=signup" className="bg-transparent border-2 border-purple-600 text-purple-600 px-6 py-3 rounded-full hover:bg-purple-600 hover:text-white transition">
-                  Sign Up
+                  Registrovat
                 </Link>
               </div>
             </div>
@@ -313,12 +313,12 @@ export default function SubmitStory() {
           <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
-                <h1 className="text-4xl font-bold text-gray-800">Story Preview</h1>
+                <h1 className="text-4xl font-bold text-gray-800">Náhled příběhu</h1>
                 <button
                   onClick={() => setShowPreview(false)}
                   className="text-gray-600 hover:text-purple-800 font-medium"
                 >
-                  ← Back to Form
+                  ← Zpět na formulář
                 </button>
               </div>
 
@@ -370,7 +370,7 @@ export default function SubmitStory() {
 
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  This is a preview. The story will be published after admin approval.
+                  Toto je náhled. Příběh bude zveřejněn po schválení administrátorem.
                 </p>
               </div>
             </div>
@@ -381,39 +381,96 @@ export default function SubmitStory() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
+      {/* Enchanted Forest Header */}
+      <section className="relative py-16 md:py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800">
+          {/* Enchanted Stars */}
+          <div className="absolute inset-0">
+            {[...Array(25)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 6}s`,
+                  animationDuration: `${4 + Math.random() * 3}s`
+                }}
+              >
+                <div
+                  className="bg-white rounded-full opacity-50 animate-pulse"
+                  style={{
+                    width: `${1 + Math.random() * 1.5}px`,
+                    height: `${1 + Math.random() * 1.5}px`,
+                  }}
+                ></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Magical Elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-8 left-12 opacity-25" style={{ animationDelay: '1s', animationDuration: '6s' }}>
+              <div className="text-amber-200 text-lg">✨</div>
+            </div>
+            <div className="absolute top-16 right-16 opacity-20" style={{ animationDelay: '3s', animationDuration: '8s' }}>
+              <div className="text-yellow-200 text-xl">🌟</div>
+            </div>
+            <div className="absolute bottom-12 left-20 opacity-30" style={{ animationDelay: '5s', animationDuration: '7s' }}>
+              <div className="text-amber-300 text-base">⭐</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative container mx-auto px-4 text-center text-white">
+          <div className="max-w-3xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-200 via-yellow-300 to-orange-300 bg-clip-text text-transparent">
+              Odešlete svou pohádku
+            </h1>
+            <div className="flex justify-center items-center space-x-4 mb-6">
+              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
+              <div className="text-amber-200 text-xl animate-pulse">🪶</div>
+              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
+            </div>
+            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+              Sdílejte své kouzelné příběhy s naší komunitou. Vytvořte nezapomenutelné pohádky, které budou inspirovat čtenáře z celého světa.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-8">
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Submit Your Fairy Tale</h1>
 
             <div className="bg-white border-2 border-gray-800 text-black px-4 py-3 rounded-lg mb-6">
               <p className="text-base font-bold">
-                <strong>Note:</strong> You can submit up to 3 fairy tales. You have submitted {userStoryCount} so far.
+                <strong>Poznámka:</strong> Můžete odeslat až 3 pohádky. Dosud jste odeslali {userStoryCount}.
               </p>
             </div>
             
             {status === "success" ? (
               <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6">
-                <p className="font-bold">Story submitted successfully!</p>
-                <p>Your fairy tale has been submitted and is currently under review by our administrators.</p>
-                <p className="text-sm mt-2">You can check the status of your story in your profile page.</p>
+                <p className="font-bold">Příběh byl úspěšně odeslán!</p>
+                <p>Vaše pohádka byla odeslána a je nyní v procesu schvalování našimi administrátory.</p>
+                <p className="text-sm mt-2">Stav svého příběhu můžete zkontrolovat na stránce vašeho profilu.</p>
                 <div className="mt-4 flex gap-4">
-                  <Link href="/user" className="text-purple-600 hover:text-purple-800 font-medium">
-                    View My Stories
+                  <Link href="/user" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg">
+                    📜 Zobrazit mé příběhy
                   </Link>
                   <button
                     onClick={() => setShowPreview(true)}
-                    className="text-purple-600 hover:text-purple-800 font-medium"
+                    className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg"
                   >
-                    Preview Story
+                    👁️ Náhled příběhu
                   </button>
                   {userStoryCount < 3 && (
                     <button
                       onClick={() => setStatus("idle")}
                       className="text-purple-600 hover:text-purple-800 font-medium"
                     >
-                      Submit Another
+                      Odeslat další
                     </button>
                   )}
                 </div>
@@ -422,7 +479,7 @@ export default function SubmitStory() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                    Title
+                    Název
                   </label>
                   <input
                     type="text"
@@ -436,7 +493,7 @@ export default function SubmitStory() {
 
                 <div>
                   <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-1">
-                    Author
+                    Autor
                   </label>
                   <input
                     type="text"
@@ -448,13 +505,13 @@ export default function SubmitStory() {
                     readOnly
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Author field is automatically filled with your username
+                    Pole autora je automaticky vyplněno vaším uživatelským jménem
                   </p>
                 </div>
 
                 <div>
                   <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-                    Story Content
+                    Obsah příběhu
                   </label>
                   <textarea
                     id="content"
@@ -468,21 +525,21 @@ export default function SubmitStory() {
 
                 <div>
                   <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
-                    Tags (comma separated)
+                    Štítky (oddělené čárkou)
                   </label>
                   <input
                     type="text"
                     id="tags"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
-                    placeholder="e.g., adventure, magic, romance"
+                    placeholder="např., dobrodružství, kouzla, romance"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Story Image (optional)
+                    Obrázek k příběhu (volitelné)
                   </label>
                   <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
@@ -521,7 +578,7 @@ export default function SubmitStory() {
                               onClick={() => document.getElementById('image-input')?.click()}
                               className="text-purple-600 hover:text-purple-800 text-sm font-medium"
                             >
-                              Add More Images ({3 - images.length} remaining)
+                              Přidat další obrázky ({3 - images.length} zbývá)
                             </button>
                           </div>
                         )}
@@ -534,15 +591,15 @@ export default function SubmitStory() {
                           </svg>
                         </div>
                         <div className="text-sm text-gray-600">
-                          <p>Drag and drop images here, or click to select</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB each (max 3 images)</p>
+                          <p>Přetáhněte obrázky sem nebo klikněte pro výběr</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF až 10MB každý (max 3 obrázky)</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => document.getElementById('image-input')?.click()}
                           className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
                         >
-                          Select Image
+                          Vybrat obrázek
                         </button>
                       </div>
                     )}
@@ -564,7 +621,7 @@ export default function SubmitStory() {
 
                 <div className="flex justify-between items-center">
                   <Link href="/" className="text-gray-600 hover:text-purple-800">
-                    ← Back to Home
+                    ← Zpět na domovskou stránku
                   </Link>
                   <div className="flex gap-4">
                     <button
@@ -572,14 +629,14 @@ export default function SubmitStory() {
                       onClick={() => setShowPreview(true)}
                       className="bg-gray-600 text-white font-medium px-6 py-3 rounded-full hover:bg-gray-700 transition"
                     >
-                      Preview
+                      Náhled
                     </button>
                     <button
                       type="submit"
                       disabled={status === "submitting"}
-                      className="bg-purple-600 text-white font-medium px-6 py-3 rounded-full hover:bg-purple-700 transition disabled:opacity-50"
+                      className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 font-medium px-6 py-3 rounded-full hover:from-amber-400 hover:to-yellow-500 transition disabled:opacity-50 shadow-lg"
                     >
-                      {status === "submitting" ? "Submitting..." : "Submit Story"}
+                      {status === "submitting" ? "Odesílám..." : "📝 Odeslat příběh"}
                     </button>
                   </div>
                 </div>

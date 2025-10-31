@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
               style-src 'self' 'unsafe-inline' https://*.web.app;
               img-src 'self' data: https:;
               font-src 'self';
-              connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app;
+              connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app https://apis.google.com;
               frame-ancestors 'none';
             `.replace(/\s+/g, ' ').trim()
           }

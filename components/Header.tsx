@@ -61,51 +61,54 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition">
-          <div className="w-10 h-10 bg-purple-600 rounded-full"></div>
-          <h1 className="text-2xl font-bold text-purple-800">FairyTale</h1>
+    <header className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 shadow-xl border-b-4 border-amber-500 relative">
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-800/10 via-green-700/10 to-teal-800/10"></div>
+      <div className="relative z-10 container mx-auto px-4 py-4 flex justify-between items-center">
+        <Link href="/" className="flex items-center space-x-3 hover:scale-105 transition transform">
+          <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-2xl">🏰</span>
+          </div>
+          <h1 className="text-3xl font-bold text-amber-200 font-cinzel tracking-wider">Pohádka</h1>
         </Link>
         <nav>
-          <ul className="flex space-x-6">
-            <li><Link href="/" className="text-purple-600 hover:text-purple-800 font-medium">Home</Link></li>
-            <li><Link href="/browse" className="text-gray-600 hover:text-purple-800">Browse</Link></li>
-            <li><Link href="/submit" className="text-gray-600 hover:text-purple-800">Submit Story</Link></li>
+          <ul className="flex space-x-8">
+            <li><Link href="/" className="text-amber-200 hover:text-yellow-300 font-medium font-quicksand transition text-lg">Domů</Link></li>
+            <li><Link href="/browse" className="text-emerald-100 hover:text-amber-200 font-quicksand transition text-lg">Procházet Příběhy</Link></li>
+            <li><Link href="/submit" className="text-emerald-100 hover:text-amber-200 font-quicksand transition text-lg">Sdílet Příběh</Link></li>
           </ul>
         </nav>
         <div className="flex items-center space-x-4">
           {loading ? (
-            <div className="text-gray-600">Loading...</div>
+            <div className="text-emerald-200 font-quicksand">Loading...</div>
           ) : user ? (
             <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Welcome, {user.name}!</span>
+              <span className="text-emerald-200 font-quicksand">Vítejte, {user.name}!</span>
               {user.isAdmin ? (
                 <Link
                   href="/admin"
-                  className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-2 rounded-full hover:from-red-500 hover:to-red-600 transition font-quicksand shadow-lg"
                 >
-                  Admin Panel
+                  👑 Správce
                 </Link>
               ) : (
                 <Link
                   href="/user"
-                  className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition"
+                  className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-quicksand shadow-lg"
                 >
-                  Profile
+                  📜 Mé Příběhy
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="text-gray-600 hover:text-purple-800"
+                className="text-emerald-200 hover:text-amber-300 font-quicksand transition"
               >
-                Logout
+                Odhlásit
               </button>
             </div>
           ) : (
             <>
-              <Link href="/login" className="text-gray-600 hover:text-purple-800">Login</Link>
-              <Link href="/login?mode=signup" className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition">Sign Up</Link>
+              <Link href="/login" className="text-emerald-200 hover:text-amber-300 font-quicksand transition">Přihlásit</Link>
+              <Link href="/login?mode=signup" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-quicksand shadow-lg">✨ Připojit se k Dobrodružství</Link>
             </>
           )}
         </div>

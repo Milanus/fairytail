@@ -88,7 +88,7 @@ export default function StoryPageClient({ id }: { id: string }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
-        <p className="text-xl text-purple-600">Loading story...</p>
+        <p className="text-xl text-purple-600">Načítání příběhu...</p>
       </div>
     );
   }
@@ -97,11 +97,11 @@ export default function StoryPageClient({ id }: { id: string }) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded max-w-md">
-          <p className="font-bold">Story not found</p>
-          <p>The requested story could not be found.</p>
+          <p className="font-bold">Příběh nebyl nalezen</p>
+          <p>Požadovaný příběh nebyl nalezen.</p>
           <div className="mt-4">
             <Link href="/browse" className="text-purple-600 hover:text-purple-800 font-medium">
-              ← Back to Browse
+              ← Zpět na procházení
             </Link>
           </div>
         </div>
@@ -110,19 +110,16 @@ export default function StoryPageClient({ id }: { id: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
+      <div className="container mx-auto px-4 pb-12">
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-8">
-            <Link href="/browse" className="text-gray-600 hover:text-purple-800 flex items-center mb-6">
-              ← Back to Browse
-            </Link>
 
             <h1 className="text-4xl font-bold text-gray-800 mb-4">{story.title}</h1>
 
             <div className="flex flex-wrap items-center justify-between mb-6">
               <div className="flex items-center">
-                <span className="text-gray-600">by</span>
+                <span className="text-gray-600">od</span>
                 <span className="ml-2 font-medium text-purple-600">{story.author}</span>
               </div>
               <div className="flex items-center space-x-4">
@@ -139,21 +136,21 @@ export default function StoryPageClient({ id }: { id: string }) {
                     <svg className="w-5 h-5" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
-                    <span>{isLiked ? "Liked" : "Like"}</span>
+                    <span>{isLiked ? "Líbí se" : "Líbí se"}</span>
                   </button>
                 )}
-                <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                   {likesCount} likes
                 </span>
-                <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
-                  {story.views_count} views
+                <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
+                  {story.views_count} zobrazení
                 </span>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-8">
               {story.tags && story.tags.map((tag, index) => (
-                <span key={index} className="bg-purple-50 text-purple-700 text-sm font-medium px-3 py-1 rounded-full">
+                <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-sm font-medium px-3 py-1 rounded-full border border-amber-200">
                   {tag}
                 </span>
               ))}
@@ -167,7 +164,7 @@ export default function StoryPageClient({ id }: { id: string }) {
 
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                Published: {story.published_at ? new Date(story.published_at).toLocaleDateString() : 'Unknown'}
+                Zveřejněno: {story.published_at ? new Date(story.published_at).toLocaleDateString() : 'Neznámé'}
               </p>
             </div>
           </div>
