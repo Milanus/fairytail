@@ -79,7 +79,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center space-x-4">
           {loading ? (
-            <div className="text-emerald-200 font-quicksand">Loading...</div>
+            <div className="text-amber-200 font-quicksand animate-pulse">⏳ Načítání...</div>
           ) : user ? (
             <div className="flex items-center space-x-4">
               <span className="text-emerald-200 font-quicksand">Vítejte, {user.name}!</span>

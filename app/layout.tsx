@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   authors: [{ name: "Pohádková Platforma" }],
   creator: "Pohádková Platforma",
   publisher: "Pohádková Platforma",
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   formatDetection: {
     email: false,
     address: false,

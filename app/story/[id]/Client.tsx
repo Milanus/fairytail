@@ -87,8 +87,11 @@ export default function StoryPageClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
-        <p className="text-xl text-purple-600">Načítání příběhu...</p>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">📖</div>
+          <p className="text-xl text-amber-700 animate-pulse">Načítání příběhu...</p>
+        </div>
       </div>
     );
   }
@@ -100,7 +103,7 @@ export default function StoryPageClient({ id }: { id: string }) {
           <p className="font-bold">Příběh nebyl nalezen</p>
           <p>Požadovaný příběh nebyl nalezen.</p>
           <div className="mt-4">
-            <Link href="/browse" className="text-purple-600 hover:text-purple-800 font-medium">
+            <Link href="/browse" className="text-amber-700 hover:text-amber-800 font-medium">
               ← Zpět na procházení
             </Link>
           </div>
@@ -120,7 +123,7 @@ export default function StoryPageClient({ id }: { id: string }) {
             <div className="flex flex-wrap items-center justify-between mb-6">
               <div className="flex items-center">
                 <span className="text-gray-600">od</span>
-                <span className="ml-2 font-medium text-purple-600">{story.author}</span>
+                <span className="ml-2 font-medium text-amber-700">{story.author}</span>
               </div>
               <div className="flex items-center space-x-4">
                 {currentUser && (

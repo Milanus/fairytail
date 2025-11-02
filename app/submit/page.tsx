@@ -275,8 +275,11 @@ export default function SubmitStory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 flex items-center justify-center">
-        <p className="text-xl text-purple-600">Načítání...</p>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">🏰</div>
+          <p className="text-xl text-amber-700 animate-pulse">Načítání kouzelného světa...</p>
+        </div>
       </div>
     );
   }
@@ -295,7 +298,7 @@ export default function SubmitStory() {
                 <Link href="/login" className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">
                   Přihlásit
                 </Link>
-                <Link href="/login?mode=signup" className="bg-transparent border-2 border-purple-600 text-purple-600 px-6 py-3 rounded-full hover:bg-purple-600 hover:text-white transition">
+                <Link href="/login?mode=signup" className="bg-transparent border-2 border-amber-700 text-amber-700 px-6 py-3 rounded-full hover:bg-amber-700 hover:text-white transition">
                   Registrovat
                 </Link>
               </div>
@@ -327,7 +330,7 @@ export default function SubmitStory() {
               <div className="flex flex-wrap items-center justify-between mb-6">
                 <div className="flex items-center">
                   <span className="text-gray-600">by</span>
-                  <span className="ml-2 font-medium text-purple-600">{author}</span>
+                  <span className="ml-2 font-medium text-amber-700">{author}</span>
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
@@ -468,7 +471,7 @@ export default function SubmitStory() {
                   {userStoryCount < 3 && (
                     <button
                       onClick={() => setStatus("idle")}
-                      className="text-purple-600 hover:text-purple-800 font-medium"
+                      className="text-amber-700 hover:text-amber-800 font-medium"
                     >
                       Odeslat další
                     </button>
@@ -576,7 +579,7 @@ export default function SubmitStory() {
                             <button
                               type="button"
                               onClick={() => document.getElementById('image-input')?.click()}
-                              className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                              className="text-amber-700 hover:text-amber-800 text-sm font-medium"
                             >
                               Přidat další obrázky ({3 - images.length} zbývá)
                             </button>
@@ -597,9 +600,9 @@ export default function SubmitStory() {
                         <button
                           type="button"
                           onClick={() => document.getElementById('image-input')?.click()}
-                          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+                          className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg"
                         >
-                          Vybrat obrázek
+                          🖼️ Vybrat obrázek
                         </button>
                       </div>
                     )}

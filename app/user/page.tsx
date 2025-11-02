@@ -111,7 +111,7 @@ export default function UserPage() {
               <div className="flex flex-wrap items-center justify-between mb-6">
                 <div className="flex items-center">
                   <span className="text-gray-600">by</span>
-                  <span className="ml-2 font-medium text-purple-600">{previewStory.author}</span>
+                  <span className="ml-2 font-medium text-amber-700">{previewStory.author}</span>
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className={`px-2 py-1 text-xs font-medium rounded ${

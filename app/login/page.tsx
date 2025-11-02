@@ -270,7 +270,7 @@ function LoginForm() {
               const newUrl = newMode === 'signup' ? '/login?mode=signup' : '/login';
               window.history.replaceState({}, '', newUrl);
             }}
-            className="text-purple-600 hover:text-purple-800 underline"
+            className="text-amber-700 hover:text-amber-800 underline"
           >
             {isNewUser ? "Already have an account? Login" : "Don't have an account? Create one"}
           </button>
