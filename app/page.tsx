@@ -3,9 +3,21 @@ import Link from "next/link";
 import { fetchStoriesOnce } from "../lib/realtime";
 
 export default async function Home() {
-
   // Fetch only published stories from Firebase
-  const featuredStories = await fetchStoriesOnce("published");
+  const allPublishedStories = await fetchStoriesOnce("published");
+
+  // Sort by creation date (newest first)
+  const sortedStories = allPublishedStories.sort((a, b) => {
+    const dateA = typeof a.created_at === 'number' ? a.created_at : Date.parse(String(a.created_at) || '0');
+    const dateB = typeof b.created_at === 'number' ? b.created_at : Date.parse(String(b.created_at) || '0');
+    return dateB - dateA; // Newest first
+  });
+
+  // Get featured stories first, then fill with other published stories (both sorted by date)
+  const featuredStories = [
+    ...sortedStories.filter(story => story.is_featured),
+    ...sortedStories.filter(story => !story.is_featured)
+  ];
 
   // Function to create a preview of the content (first 100 characters)
   const createContentPreview = (content: string) => {
@@ -119,30 +131,32 @@ export default async function Home() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">Doporučené Příběhy</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredStories.slice(0, 3).map((story) => (
-                <Link key={story.id} href={`/story/${story.id}`} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition cursor-pointer" title={`Přečíst příběh: ${story.title}`}>
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-xl font-bold text-gray-800">{story.title}</h3>
-                      <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-amber-200">
-                        {story.likes_count || 0} likes
-                      </span>
-                    </div>
-                    <p className="text-gray-600 mb-4">{createContentPreview(story.content)}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">by {story.author}</span>
-                      <div className="flex space-x-2">
-                        {story.tags && story.tags.map((tag, index) => (
-                          <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-xs font-medium px-2 py-1 rounded border border-amber-200">
-                            {tag}
-                          </span>
-                        ))}
+            <div className="overflow-x-auto pb-4">
+              <div className="flex space-x-6 min-w-max">
+                {featuredStories.slice(0, 6).map((story) => (
+                  <Link key={story.id} href={`/story/${story.id}`} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition cursor-pointer flex-shrink-0 w-80 flex flex-col" title={`Přečíst příběh: ${story.title}`}>
+                    <div className="p-6 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl font-bold text-gray-800">{story.title}</h3>
+                        <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-amber-200">
+                          {story.likes_count || 0} likes
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-4 flex-1">{createContentPreview(story.content)}</p>
+                      <div className="flex justify-between items-center mt-auto">
+                        <span className="text-sm text-gray-500">by {story.author}</span>
+                        <div className="flex space-x-2">
+                          {story.tags && story.tags.slice(0, 2).map((tag, index) => (
+                            <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-xs font-medium px-2 py-1 rounded border border-amber-200">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
+              </div>
             </div>
             <div className="text-center mt-12">
               <Link href="/browse" className="inline-block bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 font-medium px-6 py-3 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg">

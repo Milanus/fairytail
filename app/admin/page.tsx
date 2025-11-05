@@ -22,6 +22,7 @@ interface Story {
   created_at: number;
   tags?: string[];
   image_urls?: string[];
+  is_featured?: boolean;
 }
 
 export default function AdminPage() {
@@ -137,6 +138,26 @@ export default function AdminPage() {
       } catch (error) {
         console.error("Error deleting story:", error);
       }
+    }
+  };
+
+  const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
+    try {
+      const storyRef = ref(database, `fairy_tales/${id}`);
+      const storySnapshot = await get(storyRef);
+      if (storySnapshot.exists()) {
+        const storyData = storySnapshot.val();
+        await set(storyRef, {
+          ...storyData,
+          is_featured: !currentFeatured,
+          updated_at: Date.now()
+        });
+      }
+
+      // Update local state
+      setStories(stories.map(s => s.id === id ? { ...s, is_featured: !currentFeatured } : s));
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
     }
   };
 
@@ -345,6 +366,7 @@ export default function AdminPage() {
                   <th className="py-2 px-4 border-b text-black">Title</th>
                   <th className="py-2 px-4 border-b text-black">Author</th>
                   <th className="py-2 px-4 border-b text-black">Status</th>
+                  <th className="py-2 px-4 border-b text-black">Featured</th>
                   <th className="py-2 px-4 border-b text-black">Created</th>
                   <th className="py-2 px-4 border-b text-black">Actions</th>
                 </tr>
@@ -355,6 +377,18 @@ export default function AdminPage() {
                     <td className="py-2 px-4 border-b">{s.title}</td>
                     <td className="py-2 px-4 border-b">{s.author}</td>
                     <td className="py-2 px-4 border-b">{s.status}</td>
+                    <td className="py-2 px-4 border-b">
+                      <button
+                        onClick={() => handleToggleFeatured(s.id, s.is_featured || false)}
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          s.is_featured
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                            : 'bg-gray-100 text-gray-800 border border-gray-300'
+                        }`}
+                      >
+                        {s.is_featured ? '⭐ Featured' : '☆ Not Featured'}
+                      </button>
+                    </td>
                     <td className="py-2 px-4 border-b">{new Date(s.created_at).toLocaleDateString()}</td>
                     <td className="py-2 px-4 border-b">
                       <button

@@ -27,6 +27,7 @@ export default function SubmitStory() {
    const [showPreview, setShowPreview] = useState(false);
    const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+   const [audioFile, setAudioFile] = useState<File | null>(null);
    const router = useRouter();
 
   useEffect(() => {
@@ -275,6 +276,21 @@ export default function SubmitStory() {
         }
       }
 
+      // Upload audio file if provided
+      let audioUrl: string | null = null;
+      if (audioFile) {
+        try {
+          const audioRef = storageRef(storage, `fairy_tales/${author}/${Date.now()}-${audioFile.name}`);
+          const audioSnapshot = await uploadBytes(audioRef, audioFile);
+          audioUrl = await getDownloadURL(audioSnapshot.ref);
+        } catch (error) {
+          console.error("Error uploading audio file:", error);
+          setStatus("error");
+          setError("Failed to upload audio file. Please try again.");
+          return;
+        }
+      }
+
       // Create the story object with sanitized data
       const storyData = {
         title: sanitizedTitle,
@@ -290,7 +306,8 @@ export default function SubmitStory() {
         likes_count: 0,
         views_count: 0,
         image_urls: imageUrls, // Add image URLs to story data
-        story_image_url: storyImageUrl // Add story image URL to story data
+        story_image_url: storyImageUrl, // Add story image URL to story data
+        audio_url: audioUrl // Add audio URL to story data
       };
 
       // Push the story to the database
@@ -310,6 +327,7 @@ export default function SubmitStory() {
       // setImagePreviews([]);
       // setStoryImage(null);
       // setStoryImagePreview("");
+      // setAudioFile(null);
 
       setStatus("success");
       setError("");
@@ -652,16 +670,24 @@ export default function SubmitStory() {
 
                 <div>
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                    Krátký popis (volitelné)
+                    Krátký popis (volitelné) - max 200 znaků
                   </label>
                   <input
                     type="text"
                     id="description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 200) {
+                        setDescription(e.target.value);
+                      }
+                    }}
                     placeholder="Krátký popis vašeho příběhu..."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                    maxLength={200}
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    {description.length}/200 znaků
+                  </p>
                 </div>
 
                 <div>
@@ -756,6 +782,58 @@ export default function SubmitStory() {
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="např., dobrodružství, kouzla, romance"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Audio soubor pohádky (volitelné)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {audioFile ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-600">🎵</span>
+                        <span className="text-sm text-gray-700">{audioFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAudioFile(null)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex-1">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('audio-input')?.click()}
+                          className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg text-sm"
+                        >
+                          🎵 Vybrat audio soubor pohádky
+                        </button>
+                        <p className="mt-1 text-xs text-gray-500">
+                          MP3, WAV, OGG až 50MB - nahrajte zvukovou verzi vaší pohádky
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="audio-input"
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && file.type.startsWith('audio/')) {
+                        if (file.size <= 50 * 1024 * 1024) { // 50MB limit
+                          setAudioFile(file);
+                        } else {
+                          alert('Audio soubor je příliš velký. Maximální velikost je 50MB.');
+                        }
+                      } else {
+                        alert('Prosím vyberte platný audio soubor.');
+                      }
+                    }}
+                    className="hidden"
                   />
                 </div>
 

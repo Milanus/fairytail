@@ -1,3 +1,6 @@
-export default function EditStoryPage() {
-  return <div>Edit Story Page</div>;
+import EditStoryClient from "./Client";
+
+export default function EditStoryPage({ params }: any) {
+  const { id } = params;
+  return <EditStoryClient id={id} />;
 }

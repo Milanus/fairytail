@@ -270,8 +270,8 @@ export default function BrowseClient() {
         {paginatedStories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedStories.map((story) => (
-              <div key={story.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
-                <div className="p-6">
+              <div key={story.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition flex flex-col">
+                <div className="p-6 flex-1 flex flex-col">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-xl font-bold text-gray-800">{story.title}</h3>
                     <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-amber-200">
@@ -281,7 +281,7 @@ export default function BrowseClient() {
                   {story.description && (
                     <p className="text-gray-700 mb-2 italic text-sm">{story.description}</p>
                   )}
-                  <p className="text-gray-600 mb-4">{story.excerpt}</p>
+                  <p className="text-gray-600 mb-4 flex-1">{story.excerpt}</p>
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm text-gray-500">od {story.author}</span>
                     <span className="text-sm text-gray-500">{story.views_count} zobrazení</span>
@@ -293,7 +293,7 @@ export default function BrowseClient() {
                       </span>
                     ))}
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center mt-auto">
                     <span className="text-sm text-gray-500">{story.created_at ? new Date(typeof story.created_at === 'number' ? story.created_at : Date.parse(String(story.created_at))).toLocaleDateString() : ''}</span>
                     <div className="flex items-center space-x-2">
                       <Link href={`/story/${story.id}`} className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg">

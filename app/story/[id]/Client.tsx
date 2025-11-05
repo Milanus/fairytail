@@ -15,6 +15,8 @@ export default function StoryPageClient({ id }: { id: string }) {
   const [likesCount, setLikesCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const WORDS_PER_PAGE = 500; // Adjust this number as needed
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -120,6 +122,34 @@ export default function StoryPageClient({ id }: { id: string }) {
     }
   };
 
+  const handlePlayAudio = () => {
+    if (story?.audio_url) {
+      if (!audioElement) {
+        const audio = new Audio(story.audio_url);
+        audio.addEventListener('ended', () => setIsPlaying(false));
+        setAudioElement(audio);
+        audio.play();
+        setIsPlaying(true);
+      } else {
+        if (isPlaying) {
+          audioElement.pause();
+          setIsPlaying(false);
+        } else {
+          audioElement.play();
+          setIsPlaying(true);
+        }
+      }
+    }
+  };
+
+  const handleStopAudio = () => {
+    if (audioElement) {
+      audioElement.pause();
+      audioElement.currentTime = 0;
+      setIsPlaying(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
@@ -164,6 +194,34 @@ export default function StoryPageClient({ id }: { id: string }) {
                 <span className="ml-2 font-medium text-amber-700">{story.author}</span>
               </div>
               <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handlePlayAudio}
+                    disabled={!story.audio_url}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition ${
+                      story.audio_url
+                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 hover:from-purple-200 hover:to-pink-200'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={story.audio_url ? (isPlaying ? "Pause audio" : "Play audio") : "No audio available"}
+                  >
+                    <span className="text-lg">{isPlaying ? '⏸️' : '▶️'}</span>
+                    <span>{isPlaying ? "Pauza" : "Přehrát"}</span>
+                  </button>
+                  <button
+                    onClick={handleStopAudio}
+                    disabled={!story.audio_url}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition ${
+                      story.audio_url
+                        ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 hover:from-red-200 hover:to-pink-200'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={story.audio_url ? "Stop audio" : "No audio available"}
+                  >
+                    <span className="text-lg">⏹️</span>
+                    <span>Stop</span>
+                  </button>
+                </div>
                 {currentUser && (
                   <button
                     onClick={handleLike}
