@@ -132,7 +132,7 @@ function LoginForm() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-purple-800 mb-6 text-center">
+        <h1 className="text-3xl font-bold text-black mb-6 text-center">
           {isNewUser ? "Create Account" : "User Login"}
         </h1>
 
@@ -152,7 +152,7 @@ function LoginForm() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               placeholder="Enter your username"
             />
           </div>
@@ -167,7 +167,7 @@ function LoginForm() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
                 placeholder="Enter your password"
               />
               <button
@@ -208,7 +208,7 @@ function LoginForm() {
                   className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 ${
                     password && confirmPassword && password !== confirmPassword
                       ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 focus:ring-purple-500'
+                      : 'border-gray-300 focus:ring-amber-500'
                   }`}
                   placeholder="Confirm your password"
                 />
@@ -245,7 +245,7 @@ function LoginForm() {
 
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-2 px-4 rounded-full hover:bg-purple-700 transition focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-4 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg"
           >
             {isNewUser ? "Create Account" : "Login"}
           </button>

@@ -83,7 +83,7 @@ export default function UserPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
-          <h1 className="text-3xl font-bold text-purple-800 mb-6">Loading...</h1>
+          <h1 className="text-3xl font-bold text-black mb-6">Loading...</h1>
           <p className="text-gray-600">Verifying your account</p>
         </div>
       </div>
@@ -123,10 +123,10 @@ export default function UserPage() {
                   }`}>
                     {previewStory.status}
                   </span>
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 likes
                   </span>
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 views
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export default function UserPage() {
 
               <div className="flex flex-wrap gap-2 mb-8">
                 {previewStory.tags && previewStory.tags.map((tag, index) => (
-                  <span key={index} className="bg-purple-50 text-purple-700 text-sm font-medium px-3 py-1 rounded-full">
+                  <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-sm font-medium px-3 py-1 rounded-full border border-amber-200">
                     {tag}
                   </span>
                 ))}
@@ -162,7 +162,7 @@ export default function UserPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-3xl font-bold text-purple-800 mb-6">User Profile</h1>
+          <h1 className="text-3xl font-bold text-black mb-6">User Profile</h1>
 
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-2">Welcome, {userName}!</h2>
@@ -204,7 +204,7 @@ export default function UserPage() {
                     <div className="flex justify-between items-center text-sm text-gray-500">
                       <div className="flex flex-wrap gap-1">
                         {story.tags && story.tags.map((tag, index) => (
-                          <span key={index} className="bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded">
+                          <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-xs px-2 py-1 rounded border border-amber-200">
                             {tag}
                           </span>
                         ))}
@@ -242,7 +242,7 @@ export default function UserPage() {
                 <p className="text-gray-600 mb-4">You haven't submitted any stories yet.</p>
                 <button
                   onClick={() => router.push("/submit")}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition"
+                  className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
                 >
                   Submit Your First Story
                 </button>
@@ -253,7 +253,7 @@ export default function UserPage() {
           <div className="flex space-x-4">
             <button
               onClick={handleLogout}
-              className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition"
+              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
             >
               Logout
             </button>
@@ -266,14 +266,14 @@ export default function UserPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-purple-800 mb-6">User Access</h1>
+        <h1 className="text-3xl font-bold text-black mb-6">User Access</h1>
         <p className="text-gray-600 mb-6">
           You need a valid hash to access your profile. If you don't have one, please contact the administrator.
         </p>
         <div className="text-center">
           <button
             onClick={() => router.push("/login")}
-            className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition"
+            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
           >
             Login
           </button>

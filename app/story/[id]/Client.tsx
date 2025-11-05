@@ -13,6 +13,8 @@ export default function StoryPageClient({ id }: { id: string }) {
   const [currentUser, setCurrentUser] = useState<{ name: string } | null>(null);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const WORDS_PER_PAGE = 500; // Adjust this number as needed
 
   useEffect(() => {
     const loadData = async () => {
@@ -85,6 +87,39 @@ export default function StoryPageClient({ id }: { id: string }) {
     }
   };
 
+  // Pagination logic
+  const getPaginatedContent = () => {
+    if (!story) return { content: [], totalPages: 1 };
+
+    const words = story.content.split(/\s+/);
+    const totalPages = Math.ceil(words.length / WORDS_PER_PAGE);
+
+    if (totalPages <= 1) {
+      return { content: [story.content], totalPages: 1 };
+    }
+
+    const startIndex = (currentPage - 1) * WORDS_PER_PAGE;
+    const endIndex = startIndex + WORDS_PER_PAGE;
+    const pageWords = words.slice(startIndex, endIndex);
+    const pageContent = pageWords.join(' ');
+
+    return { content: [pageContent], totalPages };
+  };
+
+  const { content: paginatedContent, totalPages } = getPaginatedContent();
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
@@ -118,7 +153,10 @@ export default function StoryPageClient({ id }: { id: string }) {
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-8">
 
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">{story.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{story.title}</h1>
+            {story.description && (
+              <p className="text-lg text-gray-600 mb-4 italic">{story.description}</p>
+            )}
 
             <div className="flex flex-wrap items-center justify-between mb-6">
               <div className="flex items-center">
@@ -160,10 +198,48 @@ export default function StoryPageClient({ id }: { id: string }) {
             </div>
 
             <div className="prose max-w-none text-gray-800">
-              {story.content.split('\n').map((paragraph, index) => (
+              {paginatedContent.map((paragraph, index) => (
                 <p key={index} className="mb-4">{paragraph}</p>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-6 mb-4">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 rounded-full hover:from-amber-400 hover:to-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  ← Předchozí
+                </button>
+                <span className="text-gray-600">
+                  Strana {currentPage} z {totalPages}
+                </span>
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 rounded-full hover:from-amber-400 hover:to-yellow-500 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  Další →
+                </button>
+              </div>
+            )}
+
+            {currentPage === totalPages && story.image_urls && story.image_urls.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">Obrázky k příběhu</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {story.image_urls.map((url, index) => (
+                    <img
+                      key={index}
+                      src={url}
+                      alt={`Story image ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg shadow-md"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-8 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-500">

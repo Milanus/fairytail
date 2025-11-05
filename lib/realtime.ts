@@ -5,6 +5,7 @@ import { database } from "./firebase";
 export interface Story {
   id: string;
   title: string;
+  description?: string;
   excerpt: string;
   content: string;
   author: string;
@@ -16,6 +17,8 @@ export interface Story {
   tags: string[];
   likes_count: number;
   views_count: number;
+  image_urls?: string[]; // Story images
+  story_image_url?: string; // Single story image
   likes?: number; // For client-side sorting compatibility
   createdAt?: number | string; // For client-side sorting compatibility
 }

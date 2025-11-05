@@ -188,7 +188,7 @@ export default function EditStoryClient({ id }: { id: string }) {
             <div className="p-8 text-center">
               <h1 className="text-3xl font-bold text-gray-800 mb-6">Access Denied</h1>
               <p className="text-gray-600 mb-8">{error || "You can only edit your own stories."}</p>
-              <Link href="/user" className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">
+              <Link href="/user" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-6 py-3 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg">
                 Back to Profile
               </Link>
             </div>
@@ -222,7 +222,7 @@ export default function EditStoryClient({ id }: { id: string }) {
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                     required
                   />
                 </div>
@@ -236,7 +236,7 @@ export default function EditStoryClient({ id }: { id: string }) {
                     id="author"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800 bg-gray-50"
                     required
                     readOnly
                   />
@@ -252,7 +252,7 @@ export default function EditStoryClient({ id }: { id: string }) {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                     required
                   ></textarea>
                 </div>
@@ -267,7 +267,7 @@ export default function EditStoryClient({ id }: { id: string }) {
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="e.g., adventure, magic, romance"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                   />
                 </div>
 
@@ -290,7 +290,7 @@ export default function EditStoryClient({ id }: { id: string }) {
                   <button
                     type="submit"
                     disabled={status === "submitting"}
-                    className="bg-purple-600 text-white font-medium px-6 py-3 rounded-full hover:bg-purple-700 transition disabled:opacity-50"
+                    className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 font-medium px-6 py-3 rounded-full hover:from-amber-400 hover:to-yellow-500 transition disabled:opacity-50 shadow-lg"
                   >
                     {status === "submitting" ? "Updating..." : "Update Story"}
                   </button>

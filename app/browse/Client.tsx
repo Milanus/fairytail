@@ -16,6 +16,8 @@ export default function BrowseClient() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string } | null>(null);
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const STORIES_PER_PAGE = 6;
 
   useEffect(() => {
     // Check user authentication and admin status
@@ -69,14 +71,24 @@ export default function BrowseClient() {
 
   // Filter stories based on search term and selected tag
   const filteredStories = stories.filter(story => {
-    const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           story.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           story.author.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesTag = selectedTag === "" || (story.tags || []).includes(selectedTag);
-    
+
     return matchesSearch && matchesTag;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStories.length / STORIES_PER_PAGE);
+  const startIndex = (currentPage - 1) * STORIES_PER_PAGE;
+  const endIndex = startIndex + STORIES_PER_PAGE;
+  const paginatedStories = filteredStories.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   // Get unique tags for filter dropdown
   const allTags = [...new Set(stories.flatMap(story => story.tags || []))];
@@ -216,7 +228,7 @@ export default function BrowseClient() {
                 type="text"
                 id="search"
                 placeholder="Hledat příběhy, autory..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -227,7 +239,7 @@ export default function BrowseClient() {
               <label htmlFor="tag-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtrovat podle štítku</label>
               <select
                 id="tag-filter"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
               >
@@ -243,7 +255,7 @@ export default function BrowseClient() {
               <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">Řadit podle</label>
               <select
                 id="sort"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
@@ -255,9 +267,9 @@ export default function BrowseClient() {
         </div>
         
         {/* Stories Grid */}
-        {filteredStories.length > 0 ? (
+        {paginatedStories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStories.map((story) => (
+            {paginatedStories.map((story) => (
               <div key={story.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
@@ -266,6 +278,9 @@ export default function BrowseClient() {
                       {story.likes_count || 0} likes
                     </span>
                   </div>
+                  {story.description && (
+                    <p className="text-gray-700 mb-2 italic text-sm">{story.description}</p>
+                  )}
                   <p className="text-gray-600 mb-4">{story.excerpt}</p>
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-sm text-gray-500">od {story.author}</span>
@@ -304,21 +319,43 @@ export default function BrowseClient() {
             <p className="text-gray-600 text-lg">Nebyly nalezeny žádné příběhy odpovídající vašim kritériím. Zkuste upravit vyhledávání nebo filtr.</p>
           </div>
         )}
-        
+
         {/* Pagination */}
-        <div className="flex justify-center mt-8">
-          <nav className="flex items-center space-x-2">
-            <button className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition shadow-lg">
-              1
-            </button>
-            <button className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition">
-              2
-            </button>
-            <button className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition">
-              Další →
-            </button>
-          </nav>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-8">
+            <nav className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ← Předchozí
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-4 py-2 rounded-lg transition ${
+                    page === currentPage
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 shadow-lg'
+                      : 'bg-white text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Další →
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </div>
   );

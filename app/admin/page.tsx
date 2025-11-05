@@ -144,7 +144,7 @@ export default function AdminPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
-          <h1 className="text-3xl font-bold text-purple-800 mb-6">Loading...</h1>
+          <h1 className="text-3xl font-bold text-black mb-6">Loading...</h1>
         </div>
       </div>
     );
@@ -183,10 +183,10 @@ export default function AdminPage() {
                   }`}>
                     {previewStory.status}
                   </span>
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 likes
                   </span>
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 views
                   </span>
                 </div>
@@ -194,7 +194,7 @@ export default function AdminPage() {
 
               <div className="flex flex-wrap gap-2 mb-8">
                 {previewStory.tags && previewStory.tags.map((tag, index) => (
-                  <span key={index} className="bg-purple-50 text-purple-700 text-sm font-medium px-3 py-1 rounded-full">
+                  <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-sm font-medium px-3 py-1 rounded-full border border-amber-200">
                     {tag}
                   </span>
                 ))}
@@ -237,11 +237,11 @@ export default function AdminPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
-          <h1 className="text-3xl font-bold text-purple-800 mb-6">Access Denied</h1>
+          <h1 className="text-3xl font-bold text-black mb-6">Access Denied</h1>
           <p className="text-gray-600 mb-6">You must be an admin to access this page.</p>
           <button
             onClick={() => router.push("/")}
-            className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition"
+            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
           >
             Go Home
           </button>
@@ -253,25 +253,25 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-purple-800 mb-6">Admin Panel</h1>
+        <h1 className="text-3xl font-bold text-black mb-6">Admin Panel</h1>
         <p className="text-gray-600 mb-8">Welcome, {user.name}! Manage users and stories.</p>
 
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Pending Stories ({pendingStories.length})</h2>
+          <h2 className="text-2xl font-semibold text-black mb-4">Pending Stories ({pendingStories.length})</h2>
           {pendingStories.length > 0 ? (
             <div className="overflow-x-auto mb-8">
               <table className="min-w-full bg-white border">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="py-2 px-4 border-b text-left">Title</th>
-                    <th className="py-2 px-4 border-b text-left">Author</th>
-                    <th className="py-2 px-4 border-b text-left">Submitted</th>
-                    <th className="py-2 px-4 border-b text-left">Actions</th>
+                    <th className="py-2 px-4 border-b text-left text-black">Title</th>
+                    <th className="py-2 px-4 border-b text-left text-black">Author</th>
+                    <th className="py-2 px-4 border-b text-left text-black">Submitted</th>
+                    <th className="py-2 px-4 border-b text-left text-black">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pendingStories.map(s => (
-                    <tr key={s.id}>
+                    <tr key={s.id} className="text-black">
                       <td className="py-2 px-4 border-b">{s.title}</td>
                       <td className="py-2 px-4 border-b">{s.author}</td>
                       <td className="py-2 px-4 border-b">{new Date(s.created_at).toLocaleDateString()}</td>
@@ -304,20 +304,20 @@ export default function AdminPage() {
             <p className="text-gray-600 mb-8">No pending stories to review.</p>
           )}
 
-          <h2 className="text-2xl font-semibold mb-4">Users</h2>
+          <h2 className="text-2xl font-semibold text-black mb-4">Users</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
               <thead>
                 <tr>
-                  <th className="py-2 px-4 border-b">Username</th>
-                  <th className="py-2 px-4 border-b">Admin</th>
-                  <th className="py-2 px-4 border-b">Created</th>
-                  <th className="py-2 px-4 border-b">Actions</th>
+                  <th className="py-2 px-4 border-b text-black">Username</th>
+                  <th className="py-2 px-4 border-b text-black">Admin</th>
+                  <th className="py-2 px-4 border-b text-black">Created</th>
+                  <th className="py-2 px-4 border-b text-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(u => (
-                  <tr key={u.name}>
+                  <tr key={u.name} className="text-black">
                     <td className="py-2 px-4 border-b">{u.name}</td>
                     <td className="py-2 px-4 border-b">{u.isAdmin ? "Yes" : "No"}</td>
                     <td className="py-2 px-4 border-b">{new Date(u.createdAt).toLocaleDateString()}</td>
@@ -337,21 +337,21 @@ export default function AdminPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Stories</h2>
+          <h2 className="text-2xl font-semibold text-black mb-4">Stories</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white">
               <thead>
                 <tr>
-                  <th className="py-2 px-4 border-b">Title</th>
-                  <th className="py-2 px-4 border-b">Author</th>
-                  <th className="py-2 px-4 border-b">Status</th>
-                  <th className="py-2 px-4 border-b">Created</th>
-                  <th className="py-2 px-4 border-b">Actions</th>
+                  <th className="py-2 px-4 border-b text-black">Title</th>
+                  <th className="py-2 px-4 border-b text-black">Author</th>
+                  <th className="py-2 px-4 border-b text-black">Status</th>
+                  <th className="py-2 px-4 border-b text-black">Created</th>
+                  <th className="py-2 px-4 border-b text-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {stories.map(s => (
-                  <tr key={s.id}>
+                  <tr key={s.id} className="text-black">
                     <td className="py-2 px-4 border-b">{s.title}</td>
                     <td className="py-2 px-4 border-b">{s.author}</td>
                     <td className="py-2 px-4 border-b">{s.status}</td>

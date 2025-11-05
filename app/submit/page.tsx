@@ -9,21 +9,25 @@ import { getCurrentUserWithAdmin } from "../../lib/auth";
 import Link from "next/link";
 
 export default function SubmitStory() {
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [content, setContent] = useState("");
-  const [tags, setTags] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [error, setError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [userStoryCount, setUserStoryCount] = useState(0);
-  const [images, setImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
-  const router = useRouter();
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [author, setAuthor] = useState("");
+    const [content, setContent] = useState("");
+    const [tags, setTags] = useState("");
+   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+   const [error, setError] = useState("");
+   const [isLoggedIn, setIsLoggedIn] = useState(false);
+   const [loading, setLoading] = useState(true);
+   const [userStoryCount, setUserStoryCount] = useState(0);
+   const [images, setImages] = useState<File[]>([]);
+   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+   const [storyImage, setStoryImage] = useState<File | null>(null);
+   const [storyImagePreview, setStoryImagePreview] = useState<string>("");
+   const [isDragOver, setIsDragOver] = useState(false);
+   const [showPreview, setShowPreview] = useState(false);
+   const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
+   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -31,8 +35,8 @@ export default function SubmitStory() {
       if (user) {
         setIsLoggedIn(true);
         setAuthor(user.name); // Pre-fill author field with logged-in user's name
-        // Get user's current story count
-        const count = await getUserStoryCount(user.name);
+        // Get user's current pending story count
+        const count = await getUserPendingStoryCount(user.name);
         setUserStoryCount(count);
       } else {
         setIsLoggedIn(false);
@@ -61,13 +65,15 @@ export default function SubmitStory() {
     }
   };
 
-  const getUserStoryCount = async (authorName: string): Promise<number> => {
+  const getUserPendingStoryCount = async (authorName: string): Promise<number> => {
     const storiesRef = ref(database, 'fairy_tales');
     const snapshot = await get(storiesRef);
     if (snapshot.exists()) {
       const stories = snapshot.val();
-      const userStories = Object.values(stories).filter((story: any) => story.author === authorName);
-      return userStories.length;
+      const pendingStories = Object.values(stories).filter((story: any) =>
+        story.author === authorName && story.status === 'pending'
+      );
+      return pendingStories.length;
     }
     return 0;
   };
@@ -99,7 +105,7 @@ export default function SubmitStory() {
       const newImages: File[] = [];
       const newPreviews: string[] = [];
 
-      for (let i = 0; i < files.length && images.length + newImages.length < 3; i++) {
+      for (let i = 0; i < files.length && images.length + newImages.length < 2; i++) {
         const file = files[i];
         if (file.type.startsWith('image/')) {
           newImages.push(file);
@@ -136,6 +142,31 @@ export default function SubmitStory() {
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleStoryImageSelect = (file: File | null) => {
+    if (file && file.type.startsWith('image/')) {
+      // Check if image is landscape (width > height)
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > img.height) {
+          setStoryImage(file);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setStoryImagePreview(e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          alert('Prosím vyberte širokoúhlý obrázek (krajina). Obrázek musí být širší než vyšší.');
+        }
+      };
+      img.src = URL.createObjectURL(file);
+    }
+  };
+
+  const removeStoryImage = () => {
+    setStoryImage(null);
+    setStoryImagePreview("");
   };
 
   // Input validation and sanitization
@@ -190,6 +221,7 @@ export default function SubmitStory() {
     try {
       // Sanitize inputs
       const sanitizedTitle = sanitizeInput(title);
+      const sanitizedDescription = sanitizeInput(description);
       const sanitizedContent = sanitizeInput(content);
       const sanitizedTags = sanitizeInput(tags);
 
@@ -208,11 +240,11 @@ export default function SubmitStory() {
         return;
       }
 
-      // Check if user has already submitted 3 stories
-      const storyCount = await getUserStoryCount(author);
-      if (storyCount >= 3) {
+      // Check if user has already submitted a pending story
+      const pendingStoryCount = await getUserPendingStoryCount(author);
+      if (pendingStoryCount >= 1) {
         setStatus("error");
-        setError("You have reached the maximum limit of 3 fairy tales. You cannot submit more stories.");
+        setError("Již máte jeden příběh čekající na schválení. Můžete odeslat další příběh až poté, co bude váš současný příběh schválen nebo zamítnut.");
         return;
       }
 
@@ -232,9 +264,21 @@ export default function SubmitStory() {
         }
       }
 
+      // Upload story image if provided
+      let storyImageUrl: string | null = null;
+      if (storyImage) {
+        storyImageUrl = await handleImageUpload(storyImage);
+        if (!storyImageUrl) {
+          setStatus("error");
+          setError("Failed to upload story image. Please try again.");
+          return;
+        }
+      }
+
       // Create the story object with sanitized data
       const storyData = {
         title: sanitizedTitle,
+        description: sanitizedDescription,
         author,
         content: sanitizedContent,
         author_id: author, // Use the actual user name as author_id
@@ -245,7 +289,8 @@ export default function SubmitStory() {
         tags: tagList,
         likes_count: 0,
         views_count: 0,
-        image_urls: imageUrls // Add image URLs to story data
+        image_urls: imageUrls, // Add image URLs to story data
+        story_image_url: storyImageUrl // Add story image URL to story data
       };
 
       // Push the story to the database
@@ -256,12 +301,15 @@ export default function SubmitStory() {
       await saveTagsToFirebase(tagList);
 
       // Reset form
-      setTitle("");
-      setAuthor("");
-      setContent("");
-      setTags("");
-      setImages([]);
-      setImagePreviews([]);
+      // setTitle("");
+      // setDescription("");
+      // setAuthor("");
+      // setContent("");
+      // setTags("");
+      // setImages([]);
+      // setImagePreviews([]);
+      // setStoryImage(null);
+      // setStoryImagePreview("");
 
       setStatus("success");
       setError("");
@@ -295,7 +343,7 @@ export default function SubmitStory() {
                 Pro odeslání příběhu musíte být přihlášeni. Přihlaste se nebo vytvořte účet pro sdílení vaší pohádky.
               </p>
               <div className="flex justify-center space-x-4">
-                <Link href="/login" className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition">
+                <Link href="/login" className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-6 py-3 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg">
                   Přihlásit
                 </Link>
                 <Link href="/login?mode=signup" className="bg-transparent border-2 border-amber-700 text-amber-700 px-6 py-3 rounded-full hover:bg-amber-700 hover:text-white transition">
@@ -311,12 +359,70 @@ export default function SubmitStory() {
 
   if (showPreview) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12">
-        <div className="container mx-auto px-4">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
+        {/* Enchanted Forest Header */}
+        <section className="relative py-16 md:py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800">
+            {/* Enchanted Stars */}
+            <div className="absolute inset-0">
+              {[...Array(25)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 6}s`,
+                    animationDuration: `${4 + Math.random() * 3}s`
+                  }}
+                >
+                  <div
+                    className="bg-white rounded-full opacity-50 animate-pulse"
+                    style={{
+                      width: `${1 + Math.random() * 1.5}px`,
+                      height: `${1 + Math.random() * 1.5}px`,
+                    }}
+                  ></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Magical Elements */}
+            <div className="absolute inset-0">
+              <div className="absolute top-8 left-12 opacity-25" style={{ animationDelay: '1s', animationDuration: '6s' }}>
+                <div className="text-amber-200 text-lg">✨</div>
+              </div>
+              <div className="absolute top-16 right-16 opacity-20" style={{ animationDelay: '3s', animationDuration: '8s' }}>
+                <div className="text-yellow-200 text-xl">🌟</div>
+              </div>
+              <div className="absolute bottom-12 left-20 opacity-30" style={{ animationDelay: '5s', animationDuration: '7s' }}>
+                <div className="text-amber-300 text-base">⭐</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative container mx-auto px-4 text-center text-white">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-200 via-yellow-300 to-orange-300 bg-clip-text text-transparent">
+                Náhled příběhu
+              </h1>
+              <div className="flex justify-center items-center space-x-4 mb-6">
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
+                <div className="text-amber-200 text-xl animate-pulse">👁️</div>
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
+              </div>
+              <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+                Zde je náhled vašeho příběhu před odesláním. Zkontrolujte obsah a klikněte na "Zpět na formulář" pro úpravy.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="container mx-auto px-4 py-12">
           <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
-                <h1 className="text-4xl font-bold text-gray-800">Náhled příběhu</h1>
+                <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
                 <button
                   onClick={() => setShowPreview(false)}
                   className="text-gray-600 hover:text-purple-800 font-medium"
@@ -325,18 +431,31 @@ export default function SubmitStory() {
                 </button>
               </div>
 
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">{title}</h2>
-
-              <div className="flex flex-wrap items-center justify-between mb-6">
-                <div className="flex items-center">
-                  <span className="text-gray-600">by</span>
-                  <span className="ml-2 font-medium text-amber-700">{author}</span>
+              <div className="mb-4">
+                {storyImagePreview && (
+                  <img
+                    src={storyImagePreview}
+                    alt="Story header image"
+                    className="w-full h-64 object-cover rounded-lg border-2 border-amber-300 mb-4"
+                  />
+                )}
+                <div className="flex-1">
+                  {description && (
+                    <p className="text-lg text-gray-600 mb-2 italic">{description}</p>
+                  )}
+                  <div className="flex items-center">
+                    <span className="text-gray-600">od</span>
+                    <span className="ml-2 font-medium text-amber-700">{author}</span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end mb-6">
                 <div className="flex items-center space-x-4">
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 likes
                   </span>
-                  <span className="bg-purple-100 text-purple-800 text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                     0 views
                   </span>
                 </div>
@@ -344,7 +463,7 @@ export default function SubmitStory() {
 
               <div className="flex flex-wrap gap-2 mb-8">
                 {tags.split(",").map((tag, index) => (
-                  <span key={index} className="bg-purple-50 text-purple-700 text-sm font-medium px-3 py-1 rounded-full">
+                  <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-sm font-medium px-3 py-1 rounded-full border border-amber-200">
                     {tag.trim()}
                   </span>
                 ))}
@@ -447,13 +566,13 @@ export default function SubmitStory() {
         <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-8">
 
-            <div className="bg-white border-2 border-gray-800 text-black px-4 py-3 rounded-lg mb-6">
-              <p className="text-base font-bold">
-                <strong>Poznámka:</strong> Můžete odeslat až 3 pohádky. Dosud jste odeslali {userStoryCount}.
-              </p>
-            </div>
-            
-            {status === "success" ? (
+          <div className="bg-white border-2 border-gray-800 text-black px-4 py-3 rounded-lg mb-6">
+            <p className="text-base font-bold">
+              <strong>Poznámka:</strong> Můžete mít pouze jeden příběh čekající na schválení. {userStoryCount > 0 ? 'Aktuálně máte jeden příběh ve frontě.' : 'Můžete odeslat nový příběh.'}
+            </p>
+          </div>
+
+          {status === "success" ? (
               <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6">
                 <p className="font-bold">Příběh byl úspěšně odeslán!</p>
                 <p>Vaše pohádka byla odeslána a je nyní v procesu schvalování našimi administrátory.</p>
@@ -468,7 +587,7 @@ export default function SubmitStory() {
                   >
                     👁️ Náhled příběhu
                   </button>
-                  {userStoryCount < 3 && (
+                  {userStoryCount < 1 && (
                     <button
                       onClick={() => setStatus("idle")}
                       className="text-amber-700 hover:text-amber-800 font-medium"
@@ -484,13 +603,64 @@ export default function SubmitStory() {
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                     Název
                   </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Přidejte emoji a název vašeho příběhu..."
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-lg"
+                      title="Přidat emoji"
+                    >
+                      👸
+                    </button>
+                  </div>
+                  {showEmojiPicker && (
+                    <div className="mt-2 p-3 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      <div className="grid grid-cols-8 gap-2 text-2xl">
+                        {['👑', '👸', '🤴', '🏰', '🏯', '🧚', '🧚‍♂️', '🧙', '🧙‍♂️', '🧟', '🧟‍♂️', '🧞', '🧞‍♂️', '🧜', '🧜‍♂️', '🧝', '🧝‍♂️', '🐉', '🦄', '🐺', '🐗', '🦌', '🐓', '🐔', '🦆', '🦅', '🦉', '🦇', '🐌', '🐛', '🐜', '🐝', '🐞', '🦋', '🦗', '🕷️', '🦂', '🐢', '🐍', '🦎', '🐊', '🐸', '🐇', '🐿️', '🦔', '🦇', '🦅', '🦉', '🐦', '🐧', '🦆', '🦢', '🦜', '🦚', '🦃', '🐔', '🐓', '🐣', '🐥', '🐤', '🐦', '🐦‍⬛', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '🌿', '🍀', '🎋', '🎍', '🌾', '🌵', '🎄', '🌲', '🌳', '🌴', '🪵', '🌱', '🌿', '☘️', '🍀', '🎋', '🎍', '🌾', '🌵', '🎄', '🌲', '🌳', '🌴', '🪵', '🌱', '🌿', '☘️', '🍀'].map(emoji => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => {
+                              setTitle(title + emoji);
+                              setShowEmojiPicker(false);
+                            }}
+                            className="hover:bg-gray-100 rounded p-1 transition"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowEmojiPicker(false)}
+                        className="mt-2 text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        Zavřít
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                    Krátký popis (volitelné)
+                  </label>
                   <input
                     type="text"
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
-                    required
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Krátký popis vašeho příběhu..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                   />
                 </div>
 
@@ -503,13 +673,62 @@ export default function SubmitStory() {
                     id="author"
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800 bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800 bg-gray-50"
                     required
                     readOnly
                   />
                   <p className="mt-1 text-sm text-gray-500">
                     Pole autora je automaticky vyplněno vaším uživatelským jménem
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Obrázek záhlaví příběhu (volitelné)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {storyImagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={storyImagePreview}
+                          alt="Story preview"
+                          className="w-20 h-20 object-cover rounded-lg border-2 border-amber-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeStoryImage}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('story-image-input')?.click()}
+                        className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg text-sm"
+                      >
+                        {storyImagePreview ? 'Změnit obrázek záhlaví' : '🖼️ Vybrat obrázek záhlaví'}
+                      </button>
+                      <p className="mt-1 text-xs text-gray-500">
+                        PNG, JPG, GIF až 5MB (doporučujeme širokoúhlé obrázky pro lepší zobrazení)
+                      </p>
+                    </div>
+                  </div>
+                  <input
+                    id="story-image-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleStoryImageSelect(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
                 </div>
 
                 <div>
@@ -521,7 +740,7 @@ export default function SubmitStory() {
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                     required
                   ></textarea>
                 </div>
@@ -536,7 +755,7 @@ export default function SubmitStory() {
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="např., dobrodružství, kouzla, romance"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
                   />
                 </div>
 
@@ -547,8 +766,8 @@ export default function SubmitStory() {
                   <div
                     className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                       isDragOver
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-300 hover:border-purple-400'
+                        ? 'border-amber-500 bg-gradient-to-r from-amber-50 to-yellow-50'
+                        : 'border-gray-300 hover:border-amber-400'
                     }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -574,14 +793,14 @@ export default function SubmitStory() {
                             </div>
                           ))}
                         </div>
-                        {images.length < 3 && (
+                        {images.length < 2 && (
                           <div className="flex justify-center">
                             <button
                               type="button"
                               onClick={() => document.getElementById('image-input')?.click()}
                               className="text-amber-700 hover:text-amber-800 text-sm font-medium"
                             >
-                              Přidat další obrázky ({3 - images.length} zbývá)
+                              Přidat další obrázky ({2 - images.length} zbývá)
                             </button>
                           </div>
                         )}
@@ -595,7 +814,7 @@ export default function SubmitStory() {
                         </div>
                         <div className="text-sm text-gray-600">
                           <p>Přetáhněte obrázky sem nebo klikněte pro výběr</p>
-                          <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF až 10MB každý (max 3 obrázky)</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF až 10MB každý (max 2 obrázky)</p>
                         </div>
                         <button
                           type="button"
