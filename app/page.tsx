@@ -31,25 +31,78 @@ export default async function Home() {
         {/* Hero Section */}
         <section className="relative py-20 md:py-32 overflow-hidden">
           {/* Enchanted Forest Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800">
+          <div className="absolute inset-0" style={{ backgroundImage: 'url(/forest01_preview-01.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            {/* Dark overlay to improve text contrast */}
+            <div className="absolute inset-0 bg-black/40"></div>
             {/* Enchanted Stars */}
-            <div className="absolute inset-0">
-              {[...Array(35)].map((_, i) => (
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Tiny stars layer */}
+              {[...Array(120)].map((_, i) => (
                 <div
-                  key={i}
+                  key={`tiny-${i}`}
+                  className="absolute"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 6}s`,
+                    animationDuration: `${8 + Math.random() * 6}s`
+                  }}
+                >
+                  <div
+                    className="rounded-full opacity-60 animate-pulse"
+                    style={{
+                      width: `${1 + Math.random() * 1.5}px`,
+                      height: `${1 + Math.random() * 1.5}px`,
+                      backgroundColor: 'rgba(255,255,255,0.95)'
+                    }}
+                  ></div>
+                </div>
+              ))}
+
+              {/* Medium stars layer */}
+              {[...Array(60)].map((_, i) => (
+                <div
+                  key={`mid-${i}`}
                   className="absolute"
                   style={{
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
                     animationDelay: `${Math.random() * 8}s`,
-                    animationDuration: `${6 + Math.random() * 4}s`
+                    animationDuration: `${10 + Math.random() * 8}s`
                   }}
                 >
                   <div
-                    className="bg-white rounded-full opacity-60 animate-pulse"
+                    className="rounded-full opacity-70 animate-pulse"
                     style={{
-                      width: `${1 + Math.random() * 2}px`,
-                      height: `${1 + Math.random() * 2}px`,
+                      width: `${2 + Math.random() * 1.5}px`,
+                      height: `${2 + Math.random() * 1.5}px`,
+                      backgroundColor: 'rgba(255,255,255,0.9)',
+                      boxShadow: '0 0 6px rgba(255,255,255,0.6)'
+                    }}
+                  ></div>
+                </div>
+              ))}
+
+              {/* Bright twinkles layer */}
+              {[...Array(25)].map((_, i) => (
+                <div
+                  key={`bright-${i}`}
+                  className="absolute"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 10}s`,
+                    animationDuration: `${12 + Math.random() * 10}s`,
+                    transform: `scale(${0.8 + Math.random() * 0.6})`
+                  }}
+                >
+                  <div
+                    className="rounded-full opacity-90 animate-pulse"
+                    style={{
+                      width: `${3 + Math.random() * 2}px`,
+                      height: `${3 + Math.random() * 2}px`,
+                      backgroundColor: 'rgba(255,255,210,0.95)',
+                      boxShadow: '0 0 10px rgba(255,235,130,0.8), 0 0 20px rgba(255,235,130,0.4)'
                     }}
                   ></div>
                 </div>
@@ -57,7 +110,8 @@ export default async function Home() {
             </div>
 
             {/* Subtle Magical Elements */}
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 pointer-events-none">
+              {/* Fixed sparkles */}
               <div className="absolute top-16 left-16 opacity-30" style={{ animationDelay: '2s', animationDuration: '8s' }}>
                 <div className="text-amber-200 text-xl">✨</div>
               </div>
@@ -70,14 +124,39 @@ export default async function Home() {
               <div className="absolute bottom-16 right-20 opacity-30" style={{ animationDelay: '1s', animationDuration: '11s' }}>
                 <div className="text-yellow-300 text-xl">✨</div>
               </div>
+
+              {/* Additional floating sparkles */}
+              {[...Array(18)].map((_, i) => {
+                const emojis = ['✨','🌟','⭐'];
+                const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                const size = 16 + Math.floor(Math.random() * 16); // 16-32px
+                const opacity = 0.15 + Math.random() * 0.35; // 0.15-0.5
+                const rotate = -10 + Math.random() * 20;
+                return (
+                  <div
+                    key={`emoji-${i}`}
+                    className="absolute"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animationDelay: `${Math.random() * 6}s`,
+                      animationDuration: `${7 + Math.random() * 8}s`,
+                      transform: `rotate(${rotate}deg)`,
+                      opacity
+                    }}
+                  >
+                    <div style={{ fontSize: `${size}px` }}>{emoji}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <div className="relative container mx-auto px-4 text-center text-white">
+          <div className="relative z-20 container mx-auto px-4 text-center text-white">
             <div className="max-w-4xl mx-auto">
               {/* Enchanted Forest Title */}
               <div className="mb-8">
-                <h1 className="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-amber-200 via-yellow-300 to-orange-300 bg-clip-text text-transparent">
+                <h1 className="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-red-400 via-orange-400 via-yellow-400 via-green-400 via-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
                       Jednou dávno...
                     </h1>
                 <div className="flex justify-center items-center space-x-4 mb-6">

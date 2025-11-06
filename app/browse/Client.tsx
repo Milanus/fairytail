@@ -159,63 +159,6 @@ export default function BrowseClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50">
-      {/* Enchanted Forest Header */}
-      <section className="relative py-16 md:py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 via-green-700 to-teal-800">
-          {/* Enchanted Stars */}
-          <div className="absolute inset-0">
-            {[...Array(25)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 6}s`,
-                  animationDuration: `${4 + Math.random() * 3}s`
-                }}
-              >
-                <div
-                  className="bg-white rounded-full opacity-50 animate-pulse"
-                  style={{
-                    width: `${1 + Math.random() * 1.5}px`,
-                    height: `${1 + Math.random() * 1.5}px`,
-                  }}
-                ></div>
-              </div>
-            ))}
-          </div>
-
-          {/* Magical Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-8 left-12 opacity-25" style={{ animationDelay: '1s', animationDuration: '6s' }}>
-              <div className="text-amber-200 text-lg">✨</div>
-            </div>
-            <div className="absolute top-16 right-16 opacity-20" style={{ animationDelay: '3s', animationDuration: '8s' }}>
-              <div className="text-yellow-200 text-xl">🌟</div>
-            </div>
-            <div className="absolute bottom-12 left-20 opacity-30" style={{ animationDelay: '5s', animationDuration: '7s' }}>
-              <div className="text-amber-300 text-base">⭐</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative container mx-auto px-4 text-center text-white">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-200 via-yellow-300 to-orange-300 bg-clip-text text-transparent">
-              Procházet Pohádky
-            </h1>
-            <div className="flex justify-center items-center space-x-4 mb-6">
-              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
-              <div className="text-amber-200 text-xl animate-pulse">📚</div>
-              <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>
-            </div>
-            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-              Objevte kouzelné příběhy z naší sbírky. Filtrujte podle štítků a najděte svou další oblíbenou pohádku.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filter Section */}

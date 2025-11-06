@@ -6,6 +6,7 @@ import { getCurrentUserWithAdmin } from "../../lib/auth";
 import { database } from "../../lib/firebase";
 import { ref, get, remove, set } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
+import Hero from "../../components/Hero";
 
 interface User {
   name: string;
@@ -272,7 +273,13 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
+      <Hero
+        title="Admin Panel"
+        subtitle="Správa uživatelů a příběhů"
+        height="sm"
+      />
+      <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-black mb-6">Admin Panel</h1>
         <p className="text-gray-600 mb-8">Welcome, {user.name}! Manage users and stories.</p>
@@ -418,5 +425,6 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

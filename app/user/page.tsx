@@ -6,6 +6,7 @@ import { getCurrentUserWithAdmin } from "../../lib/auth";
 import { database } from "../../lib/firebase";
 import { ref, get, remove } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
+import Hero from "../../components/Hero";
 
 interface Story {
   id: string;
@@ -81,12 +82,15 @@ export default function UserPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
-          <h1 className="text-3xl font-bold text-black mb-6">Loading...</h1>
-          <p className="text-gray-600">Verifying your account</p>
+      <>
+        <Hero title="Můj Profil" subtitle="Načítání..." height="sm" />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
+            <h1 className="text-3xl font-bold text-black mb-6">Loading...</h1>
+            <p className="text-gray-600">Verifying your account</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -160,125 +164,139 @@ export default function UserPage() {
 
   if (userExists) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-3xl font-bold text-black mb-6">User Profile</h1>
+      <>
+        <Hero
+          title="Můj Profil"
+          subtitle={`Vítejte, ${userName}!`}
+          height="sm"
+        />
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <h1 className="text-3xl font-bold text-black mb-6">User Profile</h1>
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2">Welcome, {userName}!</h2>
-            {isAdmin && <p className="text-red-600 font-medium mb-2">Admin User</p>}
-            <p className="text-gray-600">Your username:</p>
-            <div className="mt-2 p-3 bg-gray-100 rounded-md font-mono text-sm break-all">
-              {userName}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-2">Welcome, {userName}!</h2>
+              {isAdmin && <p className="text-red-600 font-medium mb-2">Admin User</p>}
+              <p className="text-gray-600">Your username:</p>
+              <div className="mt-2 p-3 bg-gray-100 rounded-md font-mono text-sm break-all">
+                {userName}
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold mb-4">Your Stories ({userStories.length})</h2>
+              {userStories.length > 0 ? (
+                <div className="space-y-4">
+                  {userStories.map((story) => (
+                    <div key={story.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold text-gray-800">{story.title}</h3>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded ${
+                            story.status === 'published'
+                              ? 'bg-green-100 text-green-800'
+                              : story.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {story.status}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteStory(story.id)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                            title="Delete story"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2 line-clamp-2">{story.content.substring(0, 150)}...</p>
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <div className="flex flex-wrap gap-1">
+                          {story.tags && story.tags.map((tag, index) => (
+                            <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-xs px-2 py-1 rounded border border-amber-200">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span>{new Date(story.created_at).toLocaleDateString()}</span>
+                          <button
+                            onClick={() => handlePreviewStory(story)}
+                            className="text-green-600 hover:text-green-800 text-xs"
+                            title="Preview story"
+                          >
+                            Preview
+                          </button>
+                          <button
+                            onClick={() => router.push(`/edit/${story.id}`)}
+                            className="text-blue-600 hover:text-blue-800 text-xs"
+                            title="Edit story"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStory(story.id)}
+                            className="text-red-600 hover:text-red-800 text-xs"
+                            title="Delete story"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">You haven't submitted any stories yet.</p>
+                  <button
+                    onClick={() => router.push("/submit")}
+                    className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
+                  >
+                    Submit Your First Story
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
+              >
+                Logout
+              </button>
             </div>
           </div>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">Your Stories ({userStories.length})</h2>
-            {userStories.length > 0 ? (
-              <div className="space-y-4">
-                {userStories.map((story) => (
-                  <div key={story.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-gray-800">{story.title}</h3>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded ${
-                          story.status === 'published'
-                            ? 'bg-green-100 text-green-800'
-                            : story.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {story.status}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteStory(story.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                          title="Delete story"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-gray-600 mb-2 line-clamp-2">{story.content.substring(0, 150)}...</p>
-                    <div className="flex justify-between items-center text-sm text-gray-500">
-                      <div className="flex flex-wrap gap-1">
-                        {story.tags && story.tags.map((tag, index) => (
-                          <span key={index} className="bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 text-xs px-2 py-1 rounded border border-amber-200">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span>{new Date(story.created_at).toLocaleDateString()}</span>
-                        <button
-                          onClick={() => handlePreviewStory(story)}
-                          className="text-green-600 hover:text-green-800 text-xs"
-                          title="Preview story"
-                        >
-                          Preview
-                        </button>
-                        <button
-                          onClick={() => router.push(`/edit/${story.id}`)}
-                          className="text-blue-600 hover:text-blue-800 text-xs"
-                          title="Edit story"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStory(story.id)}
-                          className="text-red-600 hover:text-red-800 text-xs"
-                          title="Delete story"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-600 mb-4">You haven't submitted any stories yet.</p>
-                <button
-                  onClick={() => router.push("/submit")}
-                  className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
-                >
-                  Submit Your First Story
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex space-x-4">
-            <button
-              onClick={handleLogout}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
-            >
-              Logout
-            </button>
-          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-black mb-6">User Access</h1>
-        <p className="text-gray-600 mb-6">
-          You need a valid hash to access your profile. If you don't have one, please contact the administrator.
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => router.push("/login")}
-            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
-          >
-            Login
-          </button>
+    <>
+      <Hero
+        title="User Access"
+        subtitle="Přihlaste se pro zobrazení profilu."
+        height="sm"
+      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold text-black mb-6">User Access</h1>
+          <p className="text-gray-600 mb-6">
+            You need a valid hash to access your profile. If you don't have one, please contact the administrator.
+          </p>
+          <div className="text-center">
+            <button
+              onClick={() => router.push("/login")}
+              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition shadow-lg"
+            >
+              Login
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

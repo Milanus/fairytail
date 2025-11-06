@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { fetchStoryById } from "../../../lib/realtime";
 import StoryPageClient from "./Client";
+import Hero from "../../../components/Hero";
 
 export async function generateMetadata({ params }: any): Promise<Metadata> {
   const { id } = await Promise.resolve(params);
@@ -125,6 +126,7 @@ export default async function StoryPage({ params }: any) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <Hero title="Pohádka" subtitle="Čtěte kouzelný příběh" height="sm" />
       <StoryPageClient id={id} />
     </>
   );

@@ -18,7 +18,17 @@ export const metadata: Metadata = {
 
 import Link from "next/link";
 import BrowseClient from "./Client";
+import Hero from "../../components/Hero";
 
 export default function BrowseStories() {
-  return <BrowseClient />;
+  return (
+    <>
+      <Hero
+        title="Procházet Pohádky"
+        subtitle="Objevujte kouzelné příběhy podle štítků a oblíbenosti."
+        height="sm"
+      />
+      <BrowseClient />
+    </>
+  );
 }

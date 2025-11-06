@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validateUserCredentials, saveUserToFirebase, generateUserHash } from "../../lib/auth";
+import Hero from "../../components/Hero";
 
 function LoginForm() {
   const [name, setName] = useState("");
@@ -282,8 +283,15 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
-    </Suspense>
+    <>
+      <Hero
+        title="Přihlášení"
+        subtitle="Vítejte zpět v kouzelném lese."
+        height="sm"
+      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LoginForm />
+      </Suspense>
+    </>
   );
 }
