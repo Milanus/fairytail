@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUserWithAdmin } from "../../lib/auth";
-import { database } from "../../lib/firebase";
+import { database, deleteFromStorage } from "../../lib/firebase";
 import { ref, get, remove } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
 import Hero from "../../components/Hero";
@@ -56,7 +56,26 @@ export default function UserPage() {
   const handleDeleteStory = async (storyId: string) => {
     if (confirm("Are you sure you want to delete this story?")) {
       try {
+        // First, get the story data to access file URLs
         const storyRef = ref(database, `fairy_tales/${storyId}`);
+        const storySnapshot = await get(storyRef);
+        if (storySnapshot.exists()) {
+          const storyData = storySnapshot.val();
+
+          // Delete associated files from storage
+          const filesToDelete = [];
+          if (storyData.story_image_url) filesToDelete.push(storyData.story_image_url);
+          if (storyData.audio_url) filesToDelete.push(storyData.audio_url);
+          if (Array.isArray(storyData.image_urls)) {
+            filesToDelete.push(...storyData.image_urls);
+          }
+
+          // Delete files from storage (don't block on errors)
+          const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(err => console.warn(`Failed to delete file ${url}:`, err)));
+          await Promise.allSettled(deletePromises);
+        }
+
+        // Delete the story from database
         await remove(storyRef);
         setUserStories(userStories.filter(s => s.id !== storyId));
       } catch (error) {

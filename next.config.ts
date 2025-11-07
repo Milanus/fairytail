@@ -35,8 +35,9 @@ const nextConfig: NextConfig = {
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebasedatabase.app;
               style-src 'self' 'unsafe-inline' https://*.web.app;
               img-src 'self' data: https:;
+              media-src 'self' https: data: https://www.soundjay.com https://firebasestorage.googleapis.com https://*.firebasestorage.app;
               font-src 'self';
-              connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app https://apis.google.com;
+              connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app https://apis.google.com https://firebasestorage.googleapis.com;
               frame-ancestors 'none';
             `.replace(/\s+/g, ' ').trim()
           }

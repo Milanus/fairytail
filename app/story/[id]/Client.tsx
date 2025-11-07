@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { fetchStoryById, Story } from "../../../lib/realtime";
 import { getCurrentUserWithAdmin } from "../../../lib/auth";
 import { database } from "../../../lib/firebase";
@@ -16,7 +16,7 @@ export default function StoryPageClient({ id }: { id: string }) {
   const [currentPage, setCurrentPage] = useState(1);
   const WORDS_PER_PAGE = 500; // Adjust this number as needed
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -122,34 +122,6 @@ export default function StoryPageClient({ id }: { id: string }) {
     }
   };
 
-  const handlePlayAudio = () => {
-    if (story?.audio_url) {
-      if (!audioElement) {
-        const audio = new Audio(story.audio_url);
-        audio.addEventListener('ended', () => setIsPlaying(false));
-        setAudioElement(audio);
-        audio.play();
-        setIsPlaying(true);
-      } else {
-        if (isPlaying) {
-          audioElement.pause();
-          setIsPlaying(false);
-        } else {
-          audioElement.play();
-          setIsPlaying(true);
-        }
-      }
-    }
-  };
-
-  const handleStopAudio = () => {
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.currentTime = 0;
-      setIsPlaying(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
@@ -194,34 +166,36 @@ export default function StoryPageClient({ id }: { id: string }) {
                 <span className="ml-2 font-medium text-amber-700">{story.author}</span>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handlePlayAudio}
-                    disabled={!story.audio_url}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition ${
-                      story.audio_url
-                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 hover:from-purple-200 hover:to-pink-200'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                    title={story.audio_url ? (isPlaying ? "Pause audio" : "Play audio") : "No audio available"}
-                  >
-                    <span className="text-lg">{isPlaying ? '⏸️' : '▶️'}</span>
-                    <span>{isPlaying ? "Pauza" : "Přehrát"}</span>
-                  </button>
-                  <button
-                    onClick={handleStopAudio}
-                    disabled={!story.audio_url}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition ${
-                      story.audio_url
-                        ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 hover:from-red-200 hover:to-pink-200'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
-                    title={story.audio_url ? "Stop audio" : "No audio available"}
-                  >
-                    <span className="text-lg">⏹️</span>
-                    <span>Stop</span>
-                  </button>
-                </div>
+                {story.audio_url && (
+                  <div className="w-full mt-4">
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <span className="text-purple-700 font-medium">🎵 Audio pohádky</span>
+                      </div>
+                      <audio
+                        controls
+                        src={story.audio_url}
+                        preload="metadata"
+                        className="w-full"
+                        onLoadedMetadata={() => console.log('Audio metadata loaded successfully')}
+                        onCanPlay={() => console.log('Audio can play')}
+                        onError={(e) => {
+                          const target = e.target as HTMLAudioElement;
+                          console.error('Audio error details:', {
+                            url: target.src,
+                            errorCode: target.error?.code,
+                            errorMessage: target.error?.message,
+                            networkState: target.networkState,
+                            readyState: target.readyState
+                          });
+                        }}
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Pokud audio nefunguje, zkontrolujte konzoli pro detaily chyby
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {currentUser && (
                   <button
                     onClick={handleLike}
