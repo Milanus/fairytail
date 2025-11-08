@@ -15,8 +15,8 @@ export default async function Home() {
 
   // Get featured stories first, then fill with other published stories (both sorted by date)
   const featuredStories = [
-    ...sortedStories.filter(story => story.is_featured),
-    ...sortedStories.filter(story => !story.is_featured)
+    ...sortedStories.filter(story => story.is_featured === true),
+    ...sortedStories.filter(story => story.is_featured !== true)
   ];
 
   // Function to create a preview of the content (first 100 characters)

@@ -72,7 +72,7 @@ export default function BrowseClient() {
   // Filter stories based on search term and selected tag
   const filteredStories = stories.filter(story => {
     const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          story.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (story.excerpt && story.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
                           story.author.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesTag = selectedTag === "" || (story.tags || []).includes(selectedTag);
