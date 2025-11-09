@@ -277,6 +277,18 @@ export default function BrowseClient() {
                 title: "Pohádky na dobrou noc",
                 description: "krátke, pokojné, vhodné na čítanie pred spaním",
                 categoryId: "8"
+              },
+              {
+                emoji: "🦕",
+                title: "Dinosauří pohádky",
+                description: "o dinosaurech, pravěku, dobrodružstvích v minulosti",
+                categoryId: "9"
+              },
+              {
+                emoji: "🦉",
+                title: "Chytré zvířecí pohádky",
+                description: "o moudrých zvířatech, vlcích, liškách, sovách",
+                categoryId: "10"
               }
             ].map((category, index) => (
               <button

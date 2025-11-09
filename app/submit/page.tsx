@@ -58,7 +58,9 @@ export default function SubmitStory() {
     "Příběhy z přírody – les, voda, hory, ročné obdobia, zvieratká v lese",
     "Pohádky o přátelství a lásce – o kamarádstve, pomoci, dobrote",
     "Veselé pohádky – krátke, vtipné, absurdné alebo hravé",
-    "Pohádky na dobrou noc – krátke, pokojné, vhodné na čítanie pred spaním"
+    "Pohádky na dobrou noc – krátke, pokojné, vhodné na čítanie pred spaním",
+    "Dinosauří pohádky – o dinosaurech, pravěku, dobrodružstvích v minulosti",
+    "Chytré zvířecí pohádky – o moudrých zvířatech, vlcích, liškách, sovách"
   ];
 
   useEffect(() => {
