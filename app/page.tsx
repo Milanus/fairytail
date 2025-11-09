@@ -157,7 +157,7 @@ export default async function Home() {
               {/* Enchanted Forest Title */}
               <div className="mb-8">
                 <h1 className="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-red-400 via-orange-400 via-yellow-400 via-green-400 via-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                      Jednou dávno...
+                      Bylo nebylo...
                     </h1>
                 <div className="flex justify-center items-center space-x-4 mb-6">
                   <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent"></div>

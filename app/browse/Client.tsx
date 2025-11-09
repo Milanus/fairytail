@@ -75,7 +75,7 @@ export default function BrowseClient() {
                           (story.excerpt && story.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
                           story.author.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesTag = selectedTag === "" || (story.tags || []).includes(selectedTag);
+    const matchesTag = selectedTag === "" || (story.tags || []).includes(selectedTag) || story.category === selectedTag;
 
     return matchesSearch && matchesTag;
   });
@@ -163,19 +163,19 @@ export default function BrowseClient() {
       <div className="container mx-auto px-4 py-8">
         {/* Search and Filter Section */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search Input */}
-            <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Hledat</label>
-              <input
-                type="text"
-                id="search"
-                placeholder="Hledat příběhy, autory..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+          <div className="mb-6">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">Hledat příběhy</label>
+            <input
+              type="text"
+              id="search"
+              placeholder="Hledat příběhy, autory..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none text-lg"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Tag Filter */}
             <div>
@@ -208,7 +208,96 @@ export default function BrowseClient() {
             </div>
           </div>
         </div>
-        
+
+        {/* Categories Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">Kategorie pohádek</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* All Fairy Tales Button - First */}
+            <button
+              onClick={() => setSelectedTag("")}
+              className={`bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 border ${
+                selectedTag === ""
+                  ? 'border-amber-500 bg-amber-50'
+                  : 'border-amber-100'
+              }`}
+            >
+              <div className="text-center">
+                <div className="text-4xl mb-4">📚</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Všechny pohádky</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">Zobrazit všechny pohádky bez filtru</p>
+              </div>
+            </button>
+
+            {[
+              {
+                emoji: "🦊",
+                title: "Zvířecí pohádky",
+                description: "o liškách, pejscích, koťátkách, lese, farmě",
+                categoryId: "1"
+              },
+              {
+                emoji: "👑",
+                title: "Kráľovství a princezny",
+                description: "klasické pohádky o princeznách, kráľoch a zámkoch",
+                categoryId: "2"
+              },
+              {
+                emoji: "🐉",
+                title: "Draci a kouzla",
+                description: "čarovné bytosti, kouzla, čarodějové, dobrodružství",
+                categoryId: "3"
+              },
+              {
+                emoji: "🚀",
+                title: "Dobrodružné příběhy",
+                description: "cestovanie, hrdinovia, napätie, nové svety",
+                categoryId: "4"
+              },
+              {
+                emoji: "🌿",
+                title: "Příběhy z přírody",
+                description: "les, voda, hory, ročné obdobia, zvieratká v lese",
+                categoryId: "5"
+              },
+              {
+                emoji: "❤️",
+                title: "Pohádky o přátelství a lásce",
+                description: "o kamarádstve, pomoci, dobrote",
+                categoryId: "6"
+              },
+              {
+                emoji: "😂",
+                title: "Veselé pohádky",
+                description: "krátke, vtipné, absurdné alebo hravé",
+                categoryId: "7"
+              },
+              {
+                emoji: "🌙",
+                title: "Pohádky na dobrou noc",
+                description: "krátke, pokojné, vhodné na čítanie pred spaním",
+                categoryId: "8"
+              }
+            ].map((category, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedTag(category.categoryId)}
+                className={`bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 border ${
+                  selectedTag === category.categoryId
+                    ? 'border-amber-500 bg-amber-50'
+                    : 'border-amber-100'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-4">{category.emoji}</div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{category.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{category.description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* Stories Grid */}
         {paginatedStories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

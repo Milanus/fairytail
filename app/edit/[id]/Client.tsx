@@ -12,6 +12,8 @@ export default function EditStoryClient({ id }: { id: string }) {
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState("");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,7 @@ export default function EditStoryClient({ id }: { id: string }) {
           setAuthor(storyData.author || "");
           setContent(storyData.content || "");
           setTags(storyData.tags ? storyData.tags.join(", ") : "");
+          setCategory(storyData.category || "");
           setIsOwner(true);
         } else {
           setError("Story not found.");
@@ -61,6 +64,21 @@ export default function EditStoryClient({ id }: { id: string }) {
       loadStory();
     }
   }, [storyId, router]);
+
+  const categoriesList = [
+    "Zvířecí pohádky – o liškách, pejscích, koťátkách, lese, farmě",
+    "Kráľovství a princezny – klasické pohádky o princeznách, kráľoch a zámkoch",
+    "Draci a kouzla – čarovné bytosti, kouzla, čarodějové, dobrodružství",
+    "Dobrodružné příběhy – cestovanie, hrdinovia, napätie, nové svety",
+    "Příběhy z přírody – les, voda, hory, ročné obdobia, zvieratká v lese",
+    "Pohádky o přátelství a lásce – o kamarádstve, pomoci, dobrote",
+    "Veselé pohádky – krátke, vtipné, absurdné alebo hravé",
+    "Pohádky na dobrou noc – krátke, pokojné, vhodné na čítanie pred spaním"
+  ];
+
+  useEffect(() => {
+    setCategories(categoriesList);
+  }, []);
 
   const saveTagsToFirebase = async (tagList: string[]) => {
     for (const tagName of tagList) {
@@ -133,6 +151,12 @@ export default function EditStoryClient({ id }: { id: string }) {
         return;
       }
 
+      if (!category) {
+        setStatus("error");
+        setError("Kategorie je povinná");
+        return;
+      }
+
       const tagList = sanitizedTags.split(",").map((tag) => tag.trim()).filter((tag) => tag.length > 0);
 
       // Update the story in Firebase
@@ -142,6 +166,7 @@ export default function EditStoryClient({ id }: { id: string }) {
         author,
         content: sanitizedContent,
         tags: tagList,
+        category,
         status: "pending", // Reset to pending for re-approval
         updated_at: Date.now()
       });
@@ -241,6 +266,36 @@ export default function EditStoryClient({ id }: { id: string }) {
                     readOnly
                   />
                   <p className="mt-1 text-sm text-gray-500">Author field cannot be changed</p>
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategorie
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800 appearance-none bg-white"
+                      required
+                    >
+                      <option value="">Vyberte kategorii...</option>
+                      {categories.map((cat, index) => (
+                        <option key={index} value={(index + 1).toString()}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Vyberte kategorii, do které váš příběh patří
+                  </p>
                 </div>
 
                 <div>

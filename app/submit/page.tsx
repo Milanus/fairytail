@@ -29,6 +29,8 @@ export default function SubmitStory() {
    const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
    const [audioFile, setAudioFile] = useState<File | null>(null);
+   const [category, setCategory] = useState("");
+   const [categories, setCategories] = useState<string[]>([]);
    const router = useRouter();
 
   useEffect(() => {
@@ -48,6 +50,21 @@ export default function SubmitStory() {
     checkAuth();
   }, []);
 
+  const categoriesList = [
+    "Zvířecí pohádky – o liškách, pejscích, koťátkách, lese, farmě",
+    "Kráľovství a princezny – klasické pohádky o princeznách, kráľoch a zámkoch",
+    "Draci a kouzla – čarovné bytosti, kouzla, čarodějové, dobrodružství",
+    "Dobrodružné příběhy – cestovanie, hrdinovia, napätie, nové svety",
+    "Příběhy z přírody – les, voda, hory, ročné obdobia, zvieratká v lese",
+    "Pohádky o přátelství a lásce – o kamarádstve, pomoci, dobrote",
+    "Veselé pohádky – krátke, vtipné, absurdné alebo hravé",
+    "Pohádky na dobrou noc – krátke, pokojné, vhodné na čítanie pred spaním"
+  ];
+
+  useEffect(() => {
+    setCategories(categoriesList);
+  }, []);
+
   const saveTagsToFirebase = async (tagList: string[]) => {
     for (const tagName of tagList) {
       if (tagName.trim()) {
@@ -64,6 +81,54 @@ export default function SubmitStory() {
           console.error(`Error saving tag ${tagName}:`, error);
         }
       }
+    }
+  };
+
+  const saveCategoriesToFirebase = async (categoryList: string[]) => {
+    for (const categoryName of categoryList) {
+      if (categoryName.trim()) {
+        const normalizedCategory = categoryName.toLowerCase().trim();
+        const categoryRef = ref(database, `categories/${normalizedCategory}`);
+        try {
+          // Always save/update the category (create or update existing)
+          await set(categoryRef, {
+            name: categoryName,
+            createdAt: Date.now(),
+            lastUsed: Date.now()
+          });
+        } catch (error) {
+          console.error(`Error saving category ${categoryName}:`, error);
+        }
+      }
+    }
+  };
+
+  const assignCategoryToUser = async (userName: string, categoryName: string) => {
+    try {
+      const userRef = ref(database, `users/${userName}`);
+      const snapshot = await get(userRef);
+      if (snapshot.exists()) {
+        const userData = snapshot.val();
+        const currentCategories = userData.categories || [];
+        if (!currentCategories.includes(categoryName)) {
+          currentCategories.push(categoryName);
+          await set(userRef, {
+            ...userData,
+            categories: currentCategories,
+            updated_at: serverTimestamp()
+          });
+        }
+      } else {
+        // Create user entry if it doesn't exist
+        await set(userRef, {
+          name: userName,
+          categories: [categoryName],
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error(`Error assigning category ${categoryName} to user ${userName}:`, error);
     }
   };
 
@@ -242,6 +307,12 @@ export default function SubmitStory() {
         return;
       }
 
+      if (!category) {
+        setStatus("error");
+        setError("Kategorie je povinná");
+        return;
+      }
+
       // Check if user has already submitted a pending story
       const pendingStoryCount = await getUserPendingStoryCount(author);
       if (pendingStoryCount >= 1) {
@@ -304,6 +375,7 @@ export default function SubmitStory() {
         updated_at: serverTimestamp(),
         published_at: null, // Will be set when approved
         tags: tagList,
+        category,
         likes_count: 0,
         views_count: 0,
         image_urls: imageUrls, // Add image URLs to story data
@@ -317,6 +389,12 @@ export default function SubmitStory() {
 
       // Save tags to Firebase
       await saveTagsToFirebase(tagList);
+
+      // Save categories to Firebase
+      await saveCategoriesToFirebase(categories);
+
+      // Assign category to user
+      await assignCategoryToUser(author, category);
 
       // Reset form
       // setTitle("");
@@ -654,6 +732,36 @@ export default function SubmitStory() {
                   />
                   <p className="mt-1 text-sm text-gray-500">
                     Pole autora je automaticky vyplněno vaším uživatelským jménem
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                    Kategorie
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="category"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800 appearance-none bg-white"
+                      required
+                    >
+                      <option value="">Vyberte kategorii...</option>
+                      {categories.map((cat, index) => (
+                        <option key={index} value={(index + 1).toString()}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Vyberte kategorii, do které váš příběh patří
                   </p>
                 </div>
 

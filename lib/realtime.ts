@@ -15,6 +15,7 @@ export interface Story {
   updated_at: number; // Firebase timestamp
   published_at: number; // Firebase timestamp
   tags: string[];
+  category?: string; // Story category
   likes_count: number;
   views_count: number;
   image_urls?: string[]; // Story images
