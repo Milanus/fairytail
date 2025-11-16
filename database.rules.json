@@ -1,27 +1,34 @@
 {
   "rules": {
+    ".read": true,
     "users": {
       "$userId": {
-        ".write": true,
-        ".read": true
+        ".write": "!data.exists() || $userId == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true"
       }
     },
     "fairy_tales": {
       "$storyId": {
-        ".write": true,
-        ".read": true
+        ".write": "auth != null && (!data.exists() || data.child('author').val() == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
       }
     },
     "tags": {
       "$tagName": {
-        ".write": true,
-        ".read": true
+        ".write": "auth != null && (!data.exists() || data.child('author').val() == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+    "categories": {
+      "$categoryName": {
+        ".write": "auth != null && (!data.exists() || data.child('author').val() == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
       }
     },
     "user_likes": {
       "$userId": {
-        ".write": true,
-        ".read": true
+        ".write": "auth != null && ($userId == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
+      }
+    },
+    "comments": {
+      "$commentId": {
+        ".write":"auth != null && (!data.exists() || data.child('author').val() == auth.uid || root.child('users').child(auth.uid).child('isAdmin').val() == true)"
       }
     }
   }

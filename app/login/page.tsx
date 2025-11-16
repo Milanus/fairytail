@@ -2,17 +2,21 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { validateUserCredentials, saveUserToFirebase, generateUserHash } from "../../lib/auth";
+import { signInWithEmail, signUpWithEmail, onAuthStateChange, resendVerificationEmail } from "../../lib/auth";
 import Hero from "../../components/Hero";
 
 function LoginForm() {
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -20,6 +24,18 @@ function LoginForm() {
     const mode = searchParams.get('mode');
     setIsNewUser(mode === 'signup');
   }, [searchParams]);
+
+  // Listen to auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChange((user) => {
+      if (user && user.emailVerified) {
+        // User is verified, redirect to user page
+        router.push("/user");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   // Input validation and sanitization
   const sanitizeInput = (input: string): string => {
@@ -56,77 +72,94 @@ function LoginForm() {
     return null;
   };
 
+  const validateEmail = (email: string): string | null => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+    setIsLoading(true);
 
-    // Sanitize inputs
-    const sanitizedName = sanitizeInput(name);
-    const sanitizedPassword = sanitizeInput(password);
-    const sanitizedConfirmPassword = sanitizeInput(confirmPassword);
-
-    // Validate inputs
-    const nameError = validateInput(sanitizedName, "Username", 50);
-    if (nameError) {
-      setError(nameError);
-      return;
-    }
-
-    const passwordError = validateInput(sanitizedPassword, "Password", 100);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
-
-    if (isNewUser) {
-      const confirmPasswordError = validateInput(sanitizedConfirmPassword, "Confirm password", 100);
-      if (confirmPasswordError) {
-        setError(confirmPasswordError);
-        return;
-      }
-
-      if (sanitizedPassword !== sanitizedConfirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
-    }
-
-    // If it's a new user, check uniqueness and save to Firebase
-    if (isNewUser) {
-      try {
-        await saveUserToFirebase(sanitizedName, sanitizedPassword);
-        // Store user data in localStorage
-        localStorage.setItem("userName", sanitizedName);
-        localStorage.setItem("userIsAdmin", "false");
-        // Dispatch storage event to update header
-        window.dispatchEvent(new Event('storage'));
-        // Redirect to user page
-        router.push("/user");
-      } catch (error) {
-        if (error instanceof Error && error.message === "Username already exists") {
-          setError("Username already exists. Please choose a different name.");
-        } else {
-          setError("Failed to create user. Please try again.");
-        }
-      }
-      return;
-    }
-
-    // Validate existing user credentials
     try {
-      const user = await validateUserCredentials(sanitizedName, sanitizedPassword);
-      if (user) {
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email);
+      const sanitizedDisplayName = sanitizeInput(displayName);
+      const sanitizedPassword = sanitizeInput(password);
+      const sanitizedConfirmPassword = sanitizeInput(confirmPassword);
+
+      // Validate email
+      const emailError = validateEmail(sanitizedEmail);
+      if (emailError) {
+        setError(emailError);
+        return;
+      }
+
+      // Validate password
+      const passwordError = validateInput(sanitizedPassword, "Password", 100);
+      if (passwordError) {
+        setError(passwordError);
+        return;
+      }
+
+      if (isNewUser) {
+        // Validate display name for new users
+        const displayNameError = validateInput(sanitizedDisplayName, "Display name", 50);
+        if (displayNameError) {
+          setError(displayNameError);
+          return;
+        }
+
+        // Validate confirm password
+        const confirmPasswordError = validateInput(sanitizedConfirmPassword, "Confirm password", 100);
+        if (confirmPasswordError) {
+          setError(confirmPasswordError);
+          return;
+        }
+
+        if (sanitizedPassword !== sanitizedConfirmPassword) {
+          setError("Passwords do not match");
+          return;
+        }
+
+        // Sign up new user
+        await signUpWithEmail(sanitizedEmail, sanitizedPassword, sanitizedDisplayName);
+        // Redirect to verification page
+        router.push("/verify");
+      } else {
+        // Sign in existing user
+        const user = await signInWithEmail(sanitizedEmail, sanitizedPassword);
+
+        if (!user.emailVerified) {
+          setError("Please verify your email address before signing in. Check your email for the verification link.");
+          setNeedsVerification(true);
+          return;
+        }
+
         // Store user data in localStorage
-        localStorage.setItem("userName", sanitizedName);
+        localStorage.setItem("userName", user.displayName);
         localStorage.setItem("userIsAdmin", user.isAdmin.toString());
+        localStorage.setItem("userUid", user.uid);
+
         // Dispatch storage event to update header
         window.dispatchEvent(new Event('storage'));
+
         // Redirect to user page
         router.push("/user");
-      } else {
-        setError("Invalid username or password");
       }
     } catch (error) {
-      setError("Failed to validate credentials. Please try again.");
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -145,18 +178,36 @@ function LoginForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
-              Username
+            <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+              Email Address
             </label>
             <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-              placeholder="Enter your username"
+              placeholder="Enter your email address"
+              required
             />
           </div>
+
+          {isNewUser && (
+            <div className="mb-4">
+              <label htmlFor="displayName" className="block text-gray-700 font-medium mb-2">
+                Display Name
+              </label>
+              <input
+                type="text"
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="Enter your display name"
+                required
+              />
+            </div>
+          )}
 
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
@@ -244,28 +295,59 @@ function LoginForm() {
             </div>
           )}
 
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+              {success}
+            </div>
+          )}
+
+          {needsVerification && !success && (
+            <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-md">
+              <p className="mb-2">Need to verify your email?</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await resendVerificationEmail();
+                    setSuccess("Verification email sent! Please check your inbox.");
+                  } catch (error) {
+                    setError("Failed to resend verification email. Please try again.");
+                  }
+                }}
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Resend verification email
+              </button>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-4 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-4 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isNewUser ? "Create Account" : "Login"}
+            {isLoading ? "Please wait..." : (isNewUser ? "Create Account" : "Login")}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 mb-4">
             {isNewUser
-              ? "Create your account with a username and password."
-              : "Enter your username and password to login."}
+              ? "Create your account with email and password. You'll receive a verification email."
+              : "Enter your email and password to login."}
           </p>
           <button
             onClick={() => {
               setIsNewUser(!isNewUser);
               setError("");
+              setSuccess("");
+              setEmail("");
+              setDisplayName("");
               setPassword("");
               setConfirmPassword("");
               setShowPassword(false);
               setShowConfirmPassword(false);
+              setNeedsVerification(false);
               // Update URL without causing a page reload
               const newMode = !isNewUser ? 'signup' : 'login';
               const newUrl = newMode === 'signup' ? '/login?mode=signup' : '/login';

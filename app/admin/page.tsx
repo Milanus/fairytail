@@ -23,6 +23,8 @@ interface Story {
   created_at: number;
   tags?: string[];
   image_urls?: string[];
+  story_image_url?: string;
+  audio_url?: string;
   is_featured?: boolean;
 }
 
@@ -33,6 +35,13 @@ export default function AdminPage() {
   const [pendingStories, setPendingStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [previewStory, setPreviewStory] = useState<Story | null>(null);
+  const [editingMedia, setEditingMedia] = useState(false);
+  const [newStoryImage, setNewStoryImage] = useState<File | null>(null);
+  const [newAudioFile, setNewAudioFile] = useState<File | null>(null);
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [generatingAudio, setGeneratingAudio] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [audioPrompt, setAudioPrompt] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -127,6 +136,11 @@ export default function AdminPage() {
 
   const handlePreviewStory = (story: Story) => {
     setPreviewStory(story);
+    setEditingMedia(false);
+    setNewStoryImage(null);
+    setNewAudioFile(null);
+    setImagePrompt("");
+    setAudioPrompt("");
   };
 
   const handleDeleteStory = async (id: string) => {
@@ -181,6 +195,157 @@ export default function AdminPage() {
     }
   };
 
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim() || !previewStory) return;
+
+    setGeneratingImage(true);
+    try {
+      // This is a placeholder for AI image generation
+      // In a real implementation, you would call an AI image generation API
+      alert("AI Image generation is not implemented yet. This would integrate with services like DALL-E, Midjourney, or Stable Diffusion.");
+    } catch (error) {
+      console.error("Error generating image:", error);
+      alert("Failed to generate image. Please try again.");
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const handleGenerateAudio = async () => {
+    if (!previewStory) return;
+
+    setGeneratingAudio(true);
+    try {
+      // Use Google Gemini AI for text-to-speech
+      const { GoogleGenAI } = await import('@google/genai');
+
+      const ai = new GoogleGenAI({
+        apiKey: process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY || ''
+      });
+      console.log("Generating audio with prompt:", previewStory.title, previewStory.content);
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text: `Přečti to pomalu a klidně, jako pohádku na dobrou noc.“: ${previewStory.title}. ${previewStory.content}` }] }],
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Kore' },
+            },
+          },
+        },
+      });
+
+      const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (!data) {
+        throw new Error('No audio data received from AI');
+      }
+
+      const audioBuffer = Buffer.from(data, 'base64');
+
+      // Convert to blob and upload to Firebase Storage
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/wav' });
+      const audioFile = new File([audioBlob], 'generated-audio.wav', { type: 'audio/wav' });
+
+      // Upload to Firebase Storage
+      const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage');
+      const { storage } = await import('../../lib/firebase');
+
+      const audioStorageRef = storageRef(storage, `fairy_tales/${previewStory.author}/${Date.now()}-ai-audio.wav`);
+      const snapshot = await uploadBytes(audioStorageRef, audioFile);
+      const audioUrl = await getDownloadURL(snapshot.ref);
+
+      // Update the preview story with the new audio URL
+      setPreviewStory({
+        ...previewStory,
+        audio_url: audioUrl
+      });
+
+      // Update the story in database with the new audio URL
+      const storyRef = ref(database, `fairy_tales/${previewStory.id}`);
+      await set(storyRef, {
+        ...previewStory,
+        audio_url: audioUrl,
+        updated_at: Date.now()
+      });
+
+      alert("AI Audio generated and uploaded successfully!");
+    } catch (error) {
+      console.error("Error generating audio:", error);
+      alert("Failed to generate audio. Please check your API key and try again.");
+    } finally {
+      setGeneratingAudio(false);
+    }
+  };
+
+  const handleSaveMediaChanges = async () => {
+    if (!previewStory) return;
+
+    try {
+      let storyImageUrl = previewStory.story_image_url;
+      let audioUrl = previewStory.audio_url;
+
+      // Upload new story image if provided
+      if (newStoryImage) {
+        const imageRef = ref(database, `fairy_tales/${previewStory.author}/${Date.now()}-story-image`);
+        const uploadTask = await import('firebase/storage').then(({ uploadBytes, getDownloadURL, ref: storageRef }) => {
+          const storage = require('../../lib/firebase').storage;
+          const imageStorageRef = storageRef(storage, `fairy_tales/${previewStory.author}/${Date.now()}-story-image`);
+          return uploadBytes(imageStorageRef, newStoryImage).then(snapshot => getDownloadURL(snapshot.ref));
+        });
+        storyImageUrl = uploadTask;
+      }
+
+      // Upload new audio file if provided
+      if (newAudioFile) {
+        const audioRef = ref(database, `fairy_tales/${previewStory.author}/${Date.now()}-audio`);
+        const uploadTask = await import('firebase/storage').then(({ uploadBytes, getDownloadURL, ref: storageRef }) => {
+          const storage = require('../../lib/firebase').storage;
+          const audioStorageRef = storageRef(storage, `fairy_tales/${previewStory.author}/${Date.now()}-audio`);
+          return uploadBytes(audioStorageRef, newAudioFile).then(snapshot => getDownloadURL(snapshot.ref));
+        });
+        audioUrl = uploadTask;
+      }
+
+      // Update story in database
+      const storyRef = ref(database, `fairy_tales/${previewStory.id}`);
+      const updateData: any = {
+        ...previewStory,
+        updated_at: Date.now()
+      };
+
+      if (storyImageUrl !== undefined) {
+        updateData.story_image_url = storyImageUrl;
+      }
+      if (audioUrl !== undefined) {
+        updateData.audio_url = audioUrl;
+      }
+
+      await set(storyRef, updateData);
+
+      // Update local state
+      const updatedPreviewStory = { ...previewStory };
+      if (storyImageUrl !== undefined) {
+        updatedPreviewStory.story_image_url = storyImageUrl;
+      }
+      if (audioUrl !== undefined) {
+        updatedPreviewStory.audio_url = audioUrl;
+      }
+      setPreviewStory(updatedPreviewStory);
+
+      setEditingMedia(false);
+      setNewStoryImage(null);
+      setNewAudioFile(null);
+      setImagePrompt("");
+      setAudioPrompt("");
+
+      alert("Media files updated successfully!");
+    } catch (error) {
+      console.error("Error updating media:", error);
+      alert("Failed to update media files. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -199,12 +364,43 @@ export default function AdminPage() {
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h1 className="text-4xl font-bold text-gray-800">Story Preview</h1>
-                <button
-                  onClick={() => setPreviewStory(null)}
-                  className="text-gray-600 hover:text-purple-800 font-medium"
-                >
-                  ← Back to Admin Panel
-                </button>
+                <div className="flex gap-4">
+                  {!editingMedia ? (
+                    <button
+                      onClick={() => setEditingMedia(true)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    >
+                      Edit Media
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleSaveMediaChanges}
+                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingMedia(false);
+                          setNewStoryImage(null);
+                          setNewAudioFile(null);
+                          setImagePrompt("");
+                          setAudioPrompt("");
+                        }}
+                        className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setPreviewStory(null)}
+                    className="text-gray-600 hover:text-purple-800 font-medium"
+                  >
+                    ← Back to Admin Panel
+                  </button>
+                </div>
               </div>
 
               <h2 className="text-3xl font-bold text-gray-800 mb-4">{previewStory.title}</h2>
@@ -241,8 +437,107 @@ export default function AdminPage() {
                 ))}
               </div>
 
+              {/* Story Image Preview */}
+              {(previewStory.story_image_url || editingMedia) && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Story Header Image</h3>
+                  {previewStory.story_image_url && !editingMedia && (
+                    <img
+                      src={previewStory.story_image_url}
+                      alt="Story header image"
+                      className="w-full h-64 object-cover rounded-lg border-2 border-amber-300"
+                    />
+                  )}
+                  {editingMedia && (
+                    <div className="space-y-4">
+                      {previewStory.story_image_url && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-2">Current Image:</p>
+                          <img
+                            src={previewStory.story_image_url}
+                            alt="Current story header image"
+                            className="w-full h-32 object-cover rounded-lg border-2 border-gray-300"
+                          />
+                        </div>
+                      )}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {previewStory.story_image_url ? 'Replace Image:' : 'Add Image:'}
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setNewStoryImage(e.target.files?.[0] || null)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handleGenerateImage()}
+                            disabled={generatingImage}
+                            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingImage ? 'Generating...' : '🎨 Generate AI Image'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Audio Preview */}
+              {(previewStory.audio_url || editingMedia) && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Audio File</h3>
+                  {previewStory.audio_url && !editingMedia && (
+                    <audio controls className="w-full">
+                      <source src={previewStory.audio_url} type="audio/mpeg" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  )}
+                  {editingMedia && (
+                    <div className="space-y-4">
+                      {previewStory.audio_url && (
+                        <div>
+                          <p className="text-sm text-gray-600 mb-2">Current Audio:</p>
+                          <audio controls className="w-full">
+                            <source src={previewStory.audio_url} type="audio/mpeg" />
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
+                      )}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {previewStory.audio_url ? 'Replace Audio:' : 'Add Audio:'}
+                          </label>
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            onChange={(e) => setNewAudioFile(e.target.files?.[0] || null)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                          />
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handleGenerateAudio()}
+                            disabled={generatingAudio}
+                            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {generatingAudio ? 'Generating...' : '🎵 Generate AI Audio'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {previewStory.image_urls && previewStory.image_urls.length > 0 && (
                 <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Images</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {previewStory.image_urls.map((url, index) => (
                       <img

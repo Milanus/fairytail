@@ -2,62 +2,50 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getCurrentUserWithAdmin, logout } from "../lib/auth";
+import { getCurrentUser, onAuthStateChange, signOutUser } from "../lib/auth";
 
 export default function Header() {
-  const [user, setUser] = useState<{ name: string; isAdmin: boolean } | null>(null);
+  const [user, setUser] = useState<{ uid: string; email: string; displayName: string; isAdmin: boolean; emailVerified: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await getCurrentUserWithAdmin();
+    // Listen to auth state changes
+    const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      if (firebaseUser) {
+        // Get user data from our auth utility
+        const currentUser = getCurrentUser();
         setUser(currentUser);
-      } catch (error) {
-        console.error("Error fetching user:", error);
+      } else {
         setUser(null);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchUser();
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Re-fetch user data when component mounts or when localStorage changes
+  // Also listen for storage changes for backward compatibility
   useEffect(() => {
     const handleStorageChange = () => {
-      fetchUser();
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+      setLoading(false);
     };
 
-    const fetchUser = async () => {
-      try {
-        const currentUser = await getCurrentUserWithAdmin();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Listen for storage changes
     window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    localStorage.removeItem("userIsAdmin");
-    setUser(null);
-    setLoading(false);
-    // Force a re-render by triggering storage event
-    window.dispatchEvent(new Event('storage'));
-    // Redirect to home page to show logout confirmation
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      setUser(null);
+      setLoading(false);
+      // Redirect to home page to show logout confirmation
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -82,7 +70,7 @@ export default function Header() {
             <div className="text-amber-200 font-quicksand animate-pulse">⏳ Načítání...</div>
           ) : user ? (
             <div className="flex items-center space-x-4">
-              <span className="text-emerald-200 font-quicksand">Vítejte, {user.name}!</span>
+              <span className="text-emerald-200 font-quicksand">Vítejte, {user.displayName}!</span>
               {user.isAdmin ? (
                 <Link
                   href="/admin"

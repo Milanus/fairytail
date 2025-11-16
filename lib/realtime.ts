@@ -75,6 +75,9 @@ export const subscribeToStories = (callback: (stories: Story[]) => void, statusF
     } else {
       callback([]);
     }
+  }, (error) => {
+    console.error("Error subscribing to stories:", error);
+    callback([]);
   });
 
   // Return the unsubscribe function

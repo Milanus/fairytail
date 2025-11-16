@@ -1,4 +1,10 @@
 {
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": ".next",
     "ignore": [
@@ -15,13 +21,7 @@
     "headers": [
       {
         "source": "**/*.css",
-        "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
+        "headers": [
           {
             "key": "Content-Type",
             "value": "text/css"

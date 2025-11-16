@@ -9,10 +9,12 @@
     "export": "next build && next export"
   },
   "dependencies": {
+    "@google/genai": "^1.29.0",
     "firebase": "^12.4.0",
     "next": "15.5.6",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "wav": "^1.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
