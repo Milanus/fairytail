@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUserWithAdmin } from "../../lib/auth";
+import { getCurrentUser } from "../../lib/auth";
 import { database, deleteFromStorage } from "../../lib/firebase";
 import { ref, get, remove } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
@@ -30,17 +30,17 @@ export default function UserPage() {
   // Check if user is already logged in
   useEffect(() => {
     const fetchUser = async () => {
-      const currentUser = await getCurrentUserWithAdmin();
+      const currentUser = getCurrentUser();
 
       if (currentUser) {
-        setUserName(currentUser.name);
+        setUserName(currentUser.displayName);
         setIsAdmin(currentUser.isAdmin);
         setUserExists(true);
 
         // Fetch user's stories
         try {
           const allStories = await fetchStoriesOnce();
-          const userStories = allStories.filter(story => story.author === currentUser.name);
+          const userStories = allStories.filter(story => story.author === currentUser.displayName);
           setUserStories(userStories);
         } catch (error) {
           console.error("Error fetching user stories:", error);
@@ -89,14 +89,24 @@ export default function UserPage() {
     setPreviewStory(story);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userIsAdmin");
-    setUserName("");
-    setIsAdmin(false);
-    setUserExists(false);
-    setUserStories([]);
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      // Import the new logout function
+      const { signOutUser } = await import("../../lib/auth");
+      await signOutUser();
+      
+      // Clear local state
+      setUserName("");
+      setIsAdmin(false);
+      setUserExists(false);
+      setUserStories([]);
+      
+      // Redirect to home
+      router.push("/");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("Failed to logout. Please try again.");
+    }
   };
 
   if (loading) {

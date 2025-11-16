@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# authentication and admin guides
+ADMIN_PANEL_FIX_GUIDE.md
+ADMIN_STATUS_LOGGING_GUIDE.md
+AUTHENTICATION_GUIDE.md
+EMAIL_VERIFICATION_TROUBLESHOOTING.md
+FIREBASE_AUTH_SETUP_GUIDE.md
+OPTIONAL_ADMIN_SYSTEM.md

@@ -13,6 +13,38 @@ import { ref, set, get } from "firebase/database";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 /**
+ * Check if current user is NOT an admin and log the result
+ * @returns boolean true if user is NOT admin (regular user), false if admin or not logged in
+ */
+export function checkIfNotAdmin(): boolean {
+  const user = getCurrentUser();
+  
+  if (!user) {
+    console.log(`❌ NON-ADMIN CHECK: No user logged in`);
+    return true; // No user = not admin
+  }
+  
+  if (!user.isAdmin) {
+    console.log(`✅ NON-ADMIN CONFIRMED:`);
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${user.email}`);
+    console.log(`  Display Name: ${user.displayName || ""}`);
+    console.log(`  Status: REGULAR USER (NOT ADMIN)`);
+    console.log(`  Email Verified: ${user.emailVerified ? 'YES' : 'NO'}`);
+    console.log(`  ──────────────────────────────`);
+    return true;
+  } else {
+    console.log(`⚠️ ADMIN DETECTED (Not Non-Admin):`);
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${user.email}`);
+    console.log(`  Display Name: ${user.displayName || ""}`);
+    console.log(`  Status: ADMIN USER`);
+    console.log(`  ──────────────────────────────`);
+    return false;
+  }
+}
+
+/**
  * Sign up a new user with email and password
  * @param email - User's email
  * @param password - User's password
@@ -30,17 +62,22 @@ export async function signUpWithEmail(email: string, password: string, displayNa
     // Send email verification
     await sendEmailVerification(user);
 
-    // Create user profile in Firestore with unique ID
+    // Create user profile in Firestore with unique ID (isAdmin is optional, defaults to false)
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       email: email,
       displayName: displayName,
       createdAt: new Date(),
-      isAdmin: false,
       emailVerified: false,
     });
 
-    console.log("User created and verification email sent");
+    console.log("✅ NEW USER CREATED:");
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${email}`);
+    console.log(`  Display Name: ${displayName}`);
+    console.log(`  Admin Status: REGULAR USER (no isAdmin field set)`);
+    console.log(`  Email Verification: Sent`);
+    console.log(`  ──────────────────────────────`);
   } catch (error: any) {
     console.error("Error signing up:", error);
     throw new Error(getAuthErrorMessage(error.code));
@@ -65,11 +102,29 @@ export async function signInWithEmail(email: string, password: string): Promise<
     }
 
     const userData = userDoc.data();
+    const isAdmin = (userData?.isAdmin ?? false) || false;
+    
+    // Log admin status for debugging
+    console.log(`🔐 User Login - Admin Status Check:`);
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${user.email}`);
+    console.log(`  Display Name: ${user.displayName || userData.displayName || ""}`);
+    console.log(`  isAdmin Field in DB: ${userData?.isAdmin}`);
+    console.log(`  Final isAdmin Result: ${isAdmin}`);
+    console.log(`  Email Verified: ${user.emailVerified}`);
+    
+    // Log the complete user object for debugging
+    console.log(`📋 COMPLETE FIREBASE USER OBJECT:`);
+    console.log(user);
+    console.log(`📋 COMPLETE FIRESTORE USER DATA:`);
+    console.log(userData);
+    console.log(`  ──────────────────────────────`);
+    
     return {
       uid: user.uid,
       email: user.email!,
       displayName: user.displayName || userData.displayName || "",
-      isAdmin: userData.isAdmin || false,
+      isAdmin,
       emailVerified: user.emailVerified,
     };
   } catch (error: any) {
@@ -110,11 +165,46 @@ export function getCurrentUser(): { uid: string; email: string; displayName: str
   const isAdmin = localStorage.getItem('userIsAdmin') === 'true';
   const emailVerified = user.emailVerified;
 
+  // Log current user info
+  if (isAdmin) {
+    console.log(`👑 CURRENT USER (Admin):`);
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${user.email}`);
+    console.log(`  Display Name: ${user.displayName || ""}`);
+    console.log(`  Admin Status: ADMIN`);
+    console.log(`  Email Verified: ${emailVerified ? 'YES' : 'NO'}`);
+    console.log(`  localStorage userIsAdmin: ${localStorage.getItem('userIsAdmin')}`);
+  } else {
+    console.log(`👤 CURRENT USER (Regular):`);
+    console.log(`  User ID: ${user.uid}`);
+    console.log(`  Email: ${user.email}`);
+    console.log(`  Display Name: ${user.displayName || ""}`);
+    console.log(`  Admin Status: REGULAR USER`);
+    console.log(`  Email Verified: ${emailVerified ? 'YES' : 'NO'}`);
+    console.log(`  localStorage userIsAdmin: ${localStorage.getItem('userIsAdmin')}`);
+  }
+
+  // Log the complete current user object for debugging
+  console.log(`📋 COMPLETE CURRENT USER OBJECT:`);
+  console.log({
+    uid: user.uid,
+    email: user.email,
+    displayName: user.displayName || "",
+    isAdmin: isAdmin || false,
+    emailVerified,
+  });
+  
+  // Log Firebase Auth user object (contains more details)
+  console.log(`📋 COMPLETE FIREBASE AUTH USER OBJECT:`);
+  console.log(user);
+  
+  console.log(`  ──────────────────────────────`);
+
   return {
     uid: user.uid,
     email: user.email!,
     displayName: user.displayName || "",
-    isAdmin,
+    isAdmin: isAdmin || false,
     emailVerified,
   };
 }
@@ -134,6 +224,72 @@ export function isAuthenticated(): boolean {
  */
 export function onAuthStateChange(callback: (user: User | null) => void) {
   return onAuthStateChanged(auth, callback);
+}
+
+/**
+ * Update user admin status
+ * @param userId - User ID to update
+ * @param isAdmin - Admin status to set
+ * @returns Promise that resolves when admin status is updated
+ */
+export async function updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<void> {
+  const currentUser = getCurrentUser();
+  if (!currentUser || !currentUser.isAdmin) {
+    throw new Error("Only administrators can update user admin status");
+  }
+
+  try {
+    await setDoc(doc(db, "users", userId), {
+      isAdmin: isAdmin,
+      updatedAt: new Date(),
+    }, { merge: true });
+    
+    console.log(`🚀 ADMIN STATUS UPDATE:`);
+    console.log(`  Target User ID: ${userId}`);
+    console.log(`  New Admin Status: ${isAdmin ? 'TRUE (Admin)' : 'FALSE (Regular User)'}`);
+    console.log(`  Updated by: ${currentUser.displayName} (${currentUser.email})`);
+    console.log(`  Timestamp: ${new Date().toISOString()}`);
+    console.log(`  ──────────────────────────────`);
+  } catch (error) {
+    console.error("Error updating user admin status:", error);
+    throw new Error("Failed to update user admin status");
+  }
+}
+
+/**
+ * Get user profile with optional admin check
+ * @param userId - User ID to fetch
+ * @returns Promise that resolves to user profile data
+ */
+export async function getUserProfile(userId: string): Promise<{ uid: string; email: string; displayName: string; isAdmin: boolean; emailVerified: boolean } | null> {
+  try {
+    const userDoc = await getDoc(doc(db, "users", userId));
+    if (!userDoc.exists()) {
+      return null;
+    }
+
+    const userData = userDoc.data();
+    const isAdmin = userData?.isAdmin ?? false;
+    
+    console.log(`👤 User Profile Fetched:`);
+    console.log(`  User ID: ${userId}`);
+    console.log(`  Email: ${userData.email || "N/A"}`);
+    console.log(`  Display Name: ${userData.displayName || "N/A"}`);
+    console.log(`  Admin Status: ${isAdmin ? 'ADMIN' : 'REGULAR USER'}`);
+    console.log(`  Email Verified: ${userData.emailVerified ? 'YES' : 'NO'}`);
+    console.log(`  ──────────────────────────────`);
+    
+    return {
+      uid: userId,
+      email: userData.email || "",
+      displayName: userData.displayName || "",
+      isAdmin,
+      emailVerified: userData.emailVerified || false,
+    };
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return null;
+  }
 }
 
 /**

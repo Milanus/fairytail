@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUserWithAdmin } from "../../lib/auth";
+import { getCurrentUser } from "../../lib/auth";
 import { database, deleteFromStorage } from "../../lib/firebase";
 import { ref, get, remove, set } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
@@ -46,12 +46,26 @@ export default function AdminPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const currentUser = await getCurrentUserWithAdmin();
+      const currentUser = getCurrentUser();
       if (!currentUser || !currentUser.isAdmin) {
+        console.log("❌ ADMIN ACCESS DENIED:");
+        console.log(`  Current User: ${currentUser ? currentUser.displayName : 'None'}`);
+        console.log(`  Is Admin: ${currentUser?.isAdmin || false}`);
+        console.log(`  ──────────────────────────────`);
         router.push("/");
         return;
       }
-      setUser(currentUser);
+      
+      // Log successful admin access
+      console.log("✅ ADMIN ACCESS GRANTED:");
+      console.log(`  User: ${currentUser.displayName} (${currentUser.email})`);
+      console.log(`  Admin Status: ${currentUser.isAdmin}`);
+      console.log(`  ──────────────────────────────`);
+      
+      setUser({
+        name: currentUser.displayName,
+        isAdmin: currentUser.isAdmin
+      });
 
       // Fetch users
       try {
