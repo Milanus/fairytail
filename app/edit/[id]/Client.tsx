@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ref, update, get, set } from "firebase/database";
 import { database } from "../../../lib/firebase";
-import { getCurrentUserWithAdmin } from "../../../lib/auth";
+import { getCurrentUser } from "../../../lib/auth";
 import Link from "next/link";
 
 export default function EditStoryClient({ id }: { id: string }) {
@@ -24,7 +24,7 @@ export default function EditStoryClient({ id }: { id: string }) {
   useEffect(() => {
     const loadStory = async () => {
       try {
-        const user = await getCurrentUserWithAdmin();
+        const user = getCurrentUser();
         if (!user) {
           router.push("/login");
           return;
@@ -37,7 +37,7 @@ export default function EditStoryClient({ id }: { id: string }) {
           const storyData = snapshot.val();
 
           // Check if user owns this story or is admin
-          if (storyData.author !== user.name && !user.isAdmin) {
+          if (storyData.author !== user.displayName && !user.isAdmin) {
             setError("You can only edit your own stories.");
             setLoading(false);
             return;
@@ -53,7 +53,6 @@ export default function EditStoryClient({ id }: { id: string }) {
           setError("Story not found.");
         }
       } catch (error) {
-        console.error("Error loading story:", error);
         setError("Failed to load story.");
       } finally {
         setLoading(false);
@@ -95,7 +94,6 @@ export default function EditStoryClient({ id }: { id: string }) {
             lastUsed: Date.now()
           });
         } catch (error) {
-          console.error(`Error saving tag ${tagName}:`, error);
         }
       }
     }
@@ -182,7 +180,7 @@ export default function EditStoryClient({ id }: { id: string }) {
       setError("");
 
       // Redirect to appropriate page based on user type
-      const user = await getCurrentUserWithAdmin();
+      const user = getCurrentUser();
       setTimeout(() => {
         if (user?.isAdmin) {
           router.push("/admin");

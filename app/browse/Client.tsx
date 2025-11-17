@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { subscribeToStories, Story } from "../../lib/realtime";
-import { getCurrentUserWithAdmin } from "../../lib/auth";
+import { getCurrentUser } from "../../lib/auth";
 import { database } from "../../lib/firebase";
 import { ref, remove, set, get } from "firebase/database";
 
@@ -22,14 +22,14 @@ export default function BrowseClient() {
   useEffect(() => {
     // Check user authentication and admin status
     const checkUserStatus = async () => {
-      const user = await getCurrentUserWithAdmin();
-      setCurrentUser(user);
+      const user = getCurrentUser();
+      setCurrentUser(user ? { name: user.displayName } : null);
       setIsAdmin(user?.isAdmin || false);
 
       // Load user's likes if authenticated
       if (user) {
         try {
-          const likesRef = ref(database, `user_likes/${user.name}`);
+          const likesRef = ref(database, `user_likes/${user.displayName}`);
           const likesSnapshot = await get(likesRef);
           if (likesSnapshot.exists()) {
             const likesData = likesSnapshot.val();
@@ -37,7 +37,6 @@ export default function BrowseClient() {
             setUserLikes(likedStoryIds);
           }
         } catch (error) {
-          console.error("Error loading user likes:", error);
         }
       }
     };
@@ -100,7 +99,6 @@ export default function BrowseClient() {
         await remove(storyRef);
         // The realtime subscription will automatically update the UI
       } catch (error) {
-        console.error("Error deleting story:", error);
         alert("Failed to delete story. Please try again.");
       }
     }
@@ -141,7 +139,6 @@ export default function BrowseClient() {
         await set(storyRef, newLikeCount);
       }
     } catch (error) {
-      console.error("Error updating like:", error);
       alert("Failed to update like. Please try again.");
     }
   };

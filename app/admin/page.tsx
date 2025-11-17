@@ -48,19 +48,9 @@ export default function AdminPage() {
     const fetchData = async () => {
       const currentUser = getCurrentUser();
       if (!currentUser || !currentUser.isAdmin) {
-        console.log("❌ ADMIN ACCESS DENIED:");
-        console.log(`  Current User: ${currentUser ? currentUser.displayName : 'None'}`);
-        console.log(`  Is Admin: ${currentUser?.isAdmin || false}`);
-        console.log(`  ──────────────────────────────`);
         router.push("/");
         return;
       }
-      
-      // Log successful admin access
-      console.log("✅ ADMIN ACCESS GRANTED:");
-      console.log(`  User: ${currentUser.displayName} (${currentUser.email})`);
-      console.log(`  Admin Status: ${currentUser.isAdmin}`);
-      console.log(`  ──────────────────────────────`);
       
       setUser({
         name: currentUser.displayName,
@@ -80,7 +70,6 @@ export default function AdminPage() {
           setUsers(usersList);
         }
       } catch (error) {
-        console.error("Error fetching users:", error);
       }
 
       // Fetch all stories and pending stories
@@ -90,7 +79,6 @@ export default function AdminPage() {
         setStories(allStories);
         setPendingStories(pendingStoriesList);
       } catch (error) {
-        console.error("Error fetching stories:", error);
       }
 
       setLoading(false);
@@ -106,7 +94,6 @@ export default function AdminPage() {
         await remove(userRef);
         setUsers(users.filter(u => u.name !== name));
       } catch (error) {
-        console.error("Error deleting user:", error);
       }
     }
   };
@@ -131,7 +118,6 @@ export default function AdminPage() {
       const allStories = await fetchStoriesOnce();
       setStories(allStories);
     } catch (error) {
-      console.error("Error approving story:", error);
     }
   };
 
@@ -143,7 +129,6 @@ export default function AdminPage() {
         setPendingStories(pendingStories.filter(s => s.id !== id));
         setStories(stories.filter(s => s.id !== id));
       } catch (error) {
-        console.error("Error rejecting story:", error);
       }
     }
   };
@@ -175,7 +160,7 @@ export default function AdminPage() {
           }
 
           // Delete files from storage (don't block on errors)
-          const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(err => console.warn(`Failed to delete file ${url}:`, err)));
+          const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(() => {}));
           await Promise.allSettled(deletePromises);
         }
 
@@ -184,7 +169,6 @@ export default function AdminPage() {
         setStories(stories.filter(s => s.id !== id));
         setPendingStories(pendingStories.filter(s => s.id !== id));
       } catch (error) {
-        console.error("Error deleting story:", error);
       }
     }
   };
@@ -205,7 +189,6 @@ export default function AdminPage() {
       // Update local state
       setStories(stories.map(s => s.id === id ? { ...s, is_featured: !currentFeatured } : s));
     } catch (error) {
-      console.error("Error toggling featured status:", error);
     }
   };
 
@@ -218,7 +201,6 @@ export default function AdminPage() {
       // In a real implementation, you would call an AI image generation API
       alert("AI Image generation is not implemented yet. This would integrate with services like DALL-E, Midjourney, or Stable Diffusion.");
     } catch (error) {
-      console.error("Error generating image:", error);
       alert("Failed to generate image. Please try again.");
     } finally {
       setGeneratingImage(false);
@@ -236,7 +218,6 @@ export default function AdminPage() {
       const ai = new GoogleGenAI({
         apiKey: process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY || ''
       });
-      console.log("Generating audio with prompt:", previewStory.title, previewStory.content);
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: `Přečti to pomalu a klidně, jako pohádku na dobrou noc.“: ${previewStory.title}. ${previewStory.content}` }] }],
@@ -285,7 +266,6 @@ export default function AdminPage() {
 
       alert("AI Audio generated and uploaded successfully!");
     } catch (error) {
-      console.error("Error generating audio:", error);
       alert("Failed to generate audio. Please check your API key and try again.");
     } finally {
       setGeneratingAudio(false);
@@ -355,7 +335,6 @@ export default function AdminPage() {
 
       alert("Media files updated successfully!");
     } catch (error) {
-      console.error("Error updating media:", error);
       alert("Failed to update media files. Please try again.");
     }
   };

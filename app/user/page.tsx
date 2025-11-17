@@ -43,7 +43,6 @@ export default function UserPage() {
           const userStories = allStories.filter(story => story.author === currentUser.displayName);
           setUserStories(userStories);
         } catch (error) {
-          console.error("Error fetching user stories:", error);
         }
       }
 
@@ -71,7 +70,7 @@ export default function UserPage() {
           }
 
           // Delete files from storage (don't block on errors)
-          const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(err => console.warn(`Failed to delete file ${url}:`, err)));
+          const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(() => {}));
           await Promise.allSettled(deletePromises);
         }
 
@@ -79,7 +78,6 @@ export default function UserPage() {
         await remove(storyRef);
         setUserStories(userStories.filter(s => s.id !== storyId));
       } catch (error) {
-        console.error("Error deleting story:", error);
         alert("Failed to delete story. Please try again.");
       }
     }
@@ -104,7 +102,6 @@ export default function UserPage() {
       // Redirect to home
       router.push("/");
     } catch (error) {
-      console.error("Error during logout:", error);
       alert("Failed to logout. Please try again.");
     }
   };

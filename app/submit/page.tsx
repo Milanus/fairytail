@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ref, push, serverTimestamp, set, get } from "firebase/database";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { database, storage } from "../../lib/firebase";
-import { getCurrentUserWithAdmin } from "../../lib/auth";
+import { getCurrentUser } from "../../lib/auth";
 import Link from "next/link";
 import Hero from "../../components/Hero";
 
@@ -35,12 +35,12 @@ export default function SubmitStory() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await getCurrentUserWithAdmin();
+      const user = getCurrentUser();
       if (user) {
         setIsLoggedIn(true);
-        setAuthor(user.name); // Pre-fill author field with logged-in user's name
+        setAuthor(user.displayName); // Pre-fill author field with logged-in user's name
         // Get user's current pending story count
-        const count = await getUserPendingStoryCount(user.name);
+        const count = await getUserPendingStoryCount(user.displayName);
         setUserStoryCount(count);
       } else {
         setIsLoggedIn(false);
@@ -80,7 +80,6 @@ export default function SubmitStory() {
             lastUsed: Date.now()
           });
         } catch (error) {
-          console.error(`Error saving tag ${tagName}:`, error);
         }
       }
     }
@@ -99,7 +98,6 @@ export default function SubmitStory() {
             lastUsed: Date.now()
           });
         } catch (error) {
-          console.error(`Error saving category ${categoryName}:`, error);
         }
       }
     }
@@ -130,7 +128,6 @@ export default function SubmitStory() {
         });
       }
     } catch (error) {
-      console.error(`Error assigning category ${categoryName} to user ${userName}:`, error);
     }
   };
 
@@ -164,7 +161,6 @@ export default function SubmitStory() {
       const downloadURL = await getDownloadURL(snapshot.ref);
       return downloadURL;
     } catch (error) {
-      console.error("Error uploading image:", error);
       return null;
     }
   };
@@ -358,7 +354,6 @@ export default function SubmitStory() {
           const audioSnapshot = await uploadBytes(audioRef, audioFile);
           audioUrl = await getDownloadURL(audioSnapshot.ref);
         } catch (error) {
-          console.error("Error uploading audio file:", error);
           setStatus("error");
           setError("Failed to upload audio file. Please try again.");
           return;

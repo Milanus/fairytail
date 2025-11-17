@@ -20,28 +20,10 @@ export function checkIfNotAdmin(): boolean {
   const user = getCurrentUser();
   
   if (!user) {
-    console.log(`❌ NON-ADMIN CHECK: No user logged in`);
     return true; // No user = not admin
   }
   
-  if (!user.isAdmin) {
-    console.log(`✅ NON-ADMIN CONFIRMED:`);
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${user.email}`);
-    console.log(`  Display Name: ${user.displayName || ""}`);
-    console.log(`  Status: REGULAR USER (NOT ADMIN)`);
-    console.log(`  Email Verified: ${user.emailVerified ? 'YES' : 'NO'}`);
-    console.log(`  ──────────────────────────────`);
-    return true;
-  } else {
-    console.log(`⚠️ ADMIN DETECTED (Not Non-Admin):`);
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${user.email}`);
-    console.log(`  Display Name: ${user.displayName || ""}`);
-    console.log(`  Status: ADMIN USER`);
-    console.log(`  ──────────────────────────────`);
-    return false;
-  }
+  return !user.isAdmin;
 }
 
 /**
@@ -70,16 +52,7 @@ export async function signUpWithEmail(email: string, password: string, displayNa
       createdAt: new Date(),
       emailVerified: false,
     });
-
-    console.log("✅ NEW USER CREATED:");
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${email}`);
-    console.log(`  Display Name: ${displayName}`);
-    console.log(`  Admin Status: REGULAR USER (no isAdmin field set)`);
-    console.log(`  Email Verification: Sent`);
-    console.log(`  ──────────────────────────────`);
   } catch (error: any) {
-    console.error("Error signing up:", error);
     throw new Error(getAuthErrorMessage(error.code));
   }
 }
@@ -104,21 +77,16 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const userData = userDoc.data();
     const isAdmin = (userData?.isAdmin ?? false) || false;
     
-    // Log admin status for debugging
-    console.log(`🔐 User Login - Admin Status Check:`);
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${user.email}`);
-    console.log(`  Display Name: ${user.displayName || userData.displayName || ""}`);
-    console.log(`  isAdmin Field in DB: ${userData?.isAdmin}`);
-    console.log(`  Final isAdmin Result: ${isAdmin}`);
-    console.log(`  Email Verified: ${user.emailVerified}`);
-    
-    // Log the complete user object for debugging
-    console.log(`📋 COMPLETE FIREBASE USER OBJECT:`);
-    console.log(user);
-    console.log(`📋 COMPLETE FIRESTORE USER DATA:`);
-    console.log(userData);
-    console.log(`  ──────────────────────────────`);
+    // Sync user data to Realtime Database for rules to work
+    const userRef = ref(database, `users/${user.uid}`);
+    await set(userRef, {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || userData.displayName || "",
+      isAdmin: isAdmin,
+      emailVerified: user.emailVerified,
+      lastLogin: Date.now()
+    });
     
     return {
       uid: user.uid,
@@ -128,7 +96,6 @@ export async function signInWithEmail(email: string, password: string): Promise<
       emailVerified: user.emailVerified,
     };
   } catch (error: any) {
-    console.error("Error signing in:", error);
     throw new Error(getAuthErrorMessage(error.code));
   }
 }
@@ -146,7 +113,6 @@ export async function signOutUser(): Promise<void> {
       localStorage.removeItem('userUid');
     }
   } catch (error) {
-    console.error("Error signing out:", error);
     throw error;
   }
 }
@@ -164,41 +130,6 @@ export function getCurrentUser(): { uid: string; email: string; displayName: str
   // Get additional data from localStorage (set during sign in)
   const isAdmin = localStorage.getItem('userIsAdmin') === 'true';
   const emailVerified = user.emailVerified;
-
-  // Log current user info
-  if (isAdmin) {
-    console.log(`👑 CURRENT USER (Admin):`);
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${user.email}`);
-    console.log(`  Display Name: ${user.displayName || ""}`);
-    console.log(`  Admin Status: ADMIN`);
-    console.log(`  Email Verified: ${emailVerified ? 'YES' : 'NO'}`);
-    console.log(`  localStorage userIsAdmin: ${localStorage.getItem('userIsAdmin')}`);
-  } else {
-    console.log(`👤 CURRENT USER (Regular):`);
-    console.log(`  User ID: ${user.uid}`);
-    console.log(`  Email: ${user.email}`);
-    console.log(`  Display Name: ${user.displayName || ""}`);
-    console.log(`  Admin Status: REGULAR USER`);
-    console.log(`  Email Verified: ${emailVerified ? 'YES' : 'NO'}`);
-    console.log(`  localStorage userIsAdmin: ${localStorage.getItem('userIsAdmin')}`);
-  }
-
-  // Log the complete current user object for debugging
-  console.log(`📋 COMPLETE CURRENT USER OBJECT:`);
-  console.log({
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName || "",
-    isAdmin: isAdmin || false,
-    emailVerified,
-  });
-  
-  // Log Firebase Auth user object (contains more details)
-  console.log(`📋 COMPLETE FIREBASE AUTH USER OBJECT:`);
-  console.log(user);
-  
-  console.log(`  ──────────────────────────────`);
 
   return {
     uid: user.uid,
@@ -243,15 +174,7 @@ export async function updateUserAdminStatus(userId: string, isAdmin: boolean): P
       isAdmin: isAdmin,
       updatedAt: new Date(),
     }, { merge: true });
-    
-    console.log(`🚀 ADMIN STATUS UPDATE:`);
-    console.log(`  Target User ID: ${userId}`);
-    console.log(`  New Admin Status: ${isAdmin ? 'TRUE (Admin)' : 'FALSE (Regular User)'}`);
-    console.log(`  Updated by: ${currentUser.displayName} (${currentUser.email})`);
-    console.log(`  Timestamp: ${new Date().toISOString()}`);
-    console.log(`  ──────────────────────────────`);
   } catch (error) {
-    console.error("Error updating user admin status:", error);
     throw new Error("Failed to update user admin status");
   }
 }
@@ -271,14 +194,6 @@ export async function getUserProfile(userId: string): Promise<{ uid: string; ema
     const userData = userDoc.data();
     const isAdmin = userData?.isAdmin ?? false;
     
-    console.log(`👤 User Profile Fetched:`);
-    console.log(`  User ID: ${userId}`);
-    console.log(`  Email: ${userData.email || "N/A"}`);
-    console.log(`  Display Name: ${userData.displayName || "N/A"}`);
-    console.log(`  Admin Status: ${isAdmin ? 'ADMIN' : 'REGULAR USER'}`);
-    console.log(`  Email Verified: ${userData.emailVerified ? 'YES' : 'NO'}`);
-    console.log(`  ──────────────────────────────`);
-    
     return {
       uid: userId,
       email: userData.email || "",
@@ -287,7 +202,6 @@ export async function getUserProfile(userId: string): Promise<{ uid: string; ema
       emailVerified: userData.emailVerified || false,
     };
   } catch (error) {
-    console.error("Error fetching user profile:", error);
     return null;
   }
 }
@@ -305,7 +219,6 @@ export async function resendVerificationEmail(): Promise<void> {
   try {
     await sendEmailVerification(user);
   } catch (error: any) {
-    console.error("Error resending verification email:", error);
     throw new Error(getAuthErrorMessage(error.code));
   }
 }
@@ -333,6 +246,8 @@ function getAuthErrorMessage(errorCode: string): string {
       return 'Too many failed attempts. Please try again later';
     case 'auth/network-request-failed':
       return 'Network error. Please check your connection';
+    case 'auth/invalid-credential':
+      return 'Invalid credentials. Please check your Firebase configuration';
     default:
       return 'An error occurred. Please try again';
   }
@@ -344,40 +259,33 @@ function getAuthErrorMessage(errorCode: string): string {
  */
 
 export function generateUserHash(name: string, timestamp?: number): string {
-  console.warn("generateUserHash is deprecated. Use Firebase Auth instead.");
   const time = timestamp || Date.now();
   return `${name.replace(/\s+/g, '-').toLowerCase()}-${time.toString(36)}-${Math.random().toString(36).substr(2, 5)}`;
 }
 
 export function validateUserHash(hash: string): boolean {
-  console.warn("validateUserHash is deprecated. Use Firebase Auth instead.");
   const hashRegex = /^[a-z0-9-]+-[a-z0-9]+-[a-z0-9]+$/;
   return hashRegex.test(hash) && hash.length > 10;
 }
 
 export async function checkUsernameExists(name: string): Promise<boolean> {
-  console.warn("checkUsernameExists is deprecated. Use Firebase Auth instead.");
   return false; // Always return false for new auth system
 }
 
 export async function saveUserToFirebase(name: string, password: string, isAdmin: boolean = false): Promise<void> {
-  console.warn("saveUserToFirebase is deprecated. Use signUpWithEmail instead.");
   throw new Error("This function is deprecated. Use signUpWithEmail instead.");
 }
 
 export async function validateUserCredentials(name: string, password: string): Promise<{ name: string; isAdmin: boolean } | null> {
-  console.warn("validateUserCredentials is deprecated. Use signInWithEmail instead.");
   return null;
 }
 
 export async function getCurrentUserWithAdmin(): Promise<{ name: string; isAdmin: boolean } | null> {
-  console.warn("getCurrentUserWithAdmin is deprecated. Use getCurrentUser instead.");
   const user = getCurrentUser();
   if (!user) return null;
   return { name: user.displayName, isAdmin: user.isAdmin };
 }
 
 export function logout(): void {
-  console.warn("logout is deprecated. Use signOutUser instead.");
-  signOutUser().catch(console.error);
+  signOutUser().catch(() => {});
 }

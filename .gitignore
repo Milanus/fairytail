@@ -47,3 +47,10 @@ AUTHENTICATION_GUIDE.md
 EMAIL_VERIFICATION_TROUBLESHOOTING.md
 FIREBASE_AUTH_SETUP_GUIDE.md
 OPTIONAL_ADMIN_SYSTEM.md
+
+# Firebase rules and config
+.firebaserc
+firebase.json
+firestore.rules
+storage.rules
+database.rules.json

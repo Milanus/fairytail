@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { fetchStoryById, Story } from "../../../lib/realtime";
-import { getCurrentUserWithAdmin } from "../../../lib/auth";
+import { getCurrentUser } from "../../../lib/auth";
 import { database } from "../../../lib/firebase";
 import { ref, set, remove, get } from "firebase/database";
 import Link from "next/link";
@@ -29,21 +29,19 @@ export default function StoryPageClient({ id }: { id: string }) {
         }
 
         // Check user authentication
-        const user = await getCurrentUserWithAdmin();
-        setCurrentUser(user);
+        const user = getCurrentUser();
+        setCurrentUser(user ? { name: user.displayName } : null);
 
         // Check if user has liked this story
         if (user) {
           try {
-            const likeRef = ref(database, `user_likes/${user.name}/${id}`);
+            const likeRef = ref(database, `user_likes/${user.displayName}/${id}`);
             const likeSnapshot = await get(likeRef);
             setIsLiked(likeSnapshot.exists());
           } catch (error) {
-            console.error("Error checking like status:", error);
           }
         }
       } catch (error) {
-        console.error("Error loading story:", error);
       } finally {
         setLoading(false);
       }
@@ -84,7 +82,6 @@ export default function StoryPageClient({ id }: { id: string }) {
       setIsLiked(newIsLiked);
       setLikesCount(newLikesCount);
     } catch (error) {
-      console.error("Error updating like:", error);
       alert("Failed to update like. Please try again.");
     }
   };
@@ -177,18 +174,7 @@ export default function StoryPageClient({ id }: { id: string }) {
                         src={story.audio_url}
                         preload="metadata"
                         className="w-full"
-                        onLoadedMetadata={() => console.log('Audio metadata loaded successfully')}
-                        onCanPlay={() => console.log('Audio can play')}
-                        onError={(e) => {
-                          const target = e.target as HTMLAudioElement;
-                          console.error('Audio error details:', {
-                            url: target.src,
-                            errorCode: target.error?.code,
-                            errorMessage: target.error?.message,
-                            networkState: target.networkState,
-                            readyState: target.readyState
-                          });
-                        }}
+                        onError={() => {}}
                       />
                       <p className="text-xs text-gray-500 mt-2">
                         Pokud audio nefunguje, zkontrolujte konzoli pro detaily chyby

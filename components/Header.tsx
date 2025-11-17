@@ -44,7 +44,6 @@ export default function Header() {
       // Redirect to home page to show logout confirmation
       window.location.href = '/';
     } catch (error) {
-      console.error("Error signing out:", error);
     }
   };
 

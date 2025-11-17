@@ -46,9 +46,7 @@ export const deleteFromStorage = async (url: string) => {
     const { deleteObject, ref: storageRef } = await import('firebase/storage');
     const fileRef = storageRef(storage, path);
     await deleteObject(fileRef);
-    console.log(`Successfully deleted file: ${path}`);
   } catch (error) {
-    console.error('Error deleting file from storage:', error);
     throw error;
   }
 };
