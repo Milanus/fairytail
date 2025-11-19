@@ -49,9 +49,6 @@ FIREBASE_AUTH_SETUP_GUIDE.md
 OPTIONAL_ADMIN_SYSTEM.md
 ADMIN_SETUP.md
 
-# admin scripts
-scripts/make-admin.js
-
 # Firebase rules and config
 .firebaserc
 firebase.json
