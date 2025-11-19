@@ -167,19 +167,19 @@ function LoginForm() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-3xl font-bold text-black mb-6 text-center">
-          {isNewUser ? "Create Account" : "User Login"}
+          {isNewUser ? "Vytvořit účet" : "Přihlášení uživatele"}
         </h1>
 
         <p className="text-gray-600 mb-6 text-center">
           {isNewUser
-            ? "Create a new account to access the FairyTale platform."
-            : "Login to your account"}
+            ? "Vytvořte si nový účet pro přístup k platformě FairyTale."
+            : "Přihlaste se ke svému účtu"}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-              Email Address
+              E-mailová adresa
             </label>
             <input
               type="email"
@@ -187,7 +187,7 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-              placeholder="Enter your email address"
+              placeholder="Zadejte svou e-mailovou adresu"
               required
             />
           </div>
@@ -195,7 +195,7 @@ function LoginForm() {
           {isNewUser && (
             <div className="mb-4">
               <label htmlFor="displayName" className="block text-gray-700 font-medium mb-2">
-                Display Name
+                Zobrazované jméno
               </label>
               <input
                 type="text"
@@ -203,7 +203,7 @@ function LoginForm() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter your display name"
+                placeholder="Zadejte své zobrazované jméno"
                 required
               />
             </div>
@@ -211,7 +211,7 @@ function LoginForm() {
 
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
-              Password
+              Heslo
             </label>
             <div className="relative">
               <input
@@ -220,7 +220,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                placeholder="Enter your password"
+                placeholder="Zadejte své heslo"
               />
               <button
                 type="button"
@@ -241,7 +241,7 @@ function LoginForm() {
             </div>
             {isNewUser && (
               <p className="mt-2 text-sm text-gray-500">
-                Password will be securely hashed and stored.
+                Heslo bude bezpečně zahashováno a uloženo.
               </p>
             )}
           </div>
@@ -249,7 +249,7 @@ function LoginForm() {
           {isNewUser && (
             <div className="mb-4">
               <label htmlFor="confirmPassword" className="block text-gray-700 font-medium mb-2">
-                Confirm Password
+                Potvrďte heslo
               </label>
               <div className="relative">
                 <input
@@ -262,7 +262,7 @@ function LoginForm() {
                       ? 'border-red-500 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-amber-500'
                   }`}
-                  placeholder="Confirm your password"
+                  placeholder="Potvrďte své heslo"
                 />
                 <button
                   type="button"
@@ -283,7 +283,7 @@ function LoginForm() {
               </div>
               {password && confirmPassword && password !== confirmPassword && (
                 <p className="mt-2 text-sm text-red-600">
-                  Passwords do not match
+                  Hesla se neshodují
                 </p>
               )}
             </div>
@@ -303,20 +303,20 @@ function LoginForm() {
 
           {needsVerification && !success && (
             <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-md">
-              <p className="mb-2">Need to verify your email?</p>
+              <p className="mb-2">Potřebujete ověřit svůj e-mail?</p>
               <button
                 type="button"
                 onClick={async () => {
                   try {
                     await resendVerificationEmail();
-                    setSuccess("Verification email sent! Please check your inbox.");
+                    setSuccess("Ověřovací e-mail byl odeslán! Zkontrolujte prosím svou schránku.");
                   } catch (error) {
-                    setError("Failed to resend verification email. Please try again.");
+                    setError("Nepodařilo se znovu odeslat ověřovací e-mail. Zkuste to prosím znovu.");
                   }
                 }}
                 className="text-blue-600 hover:text-blue-800 underline"
               >
-                Resend verification email
+                Znovu odeslat ověřovací e-mail
               </button>
             </div>
           )}
@@ -326,15 +326,15 @@ function LoginForm() {
             disabled={isLoading}
             className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-4 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Please wait..." : (isNewUser ? "Create Account" : "Login")}
+            {isLoading ? "Prosím čekejte..." : (isNewUser ? "Vytvořit účet" : "Přihlásit se")}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600 mb-4">
             {isNewUser
-              ? "Create your account with email and password. You'll receive a verification email."
-              : "Enter your email and password to login."}
+              ? "Vytvořte si účet pomocí e-mailu a hesla. Obdržíte ověřovací e-mail."
+              : "Zadejte svůj e-mail a heslo pro přihlášení."}
           </p>
           <button
             onClick={() => {
@@ -355,7 +355,7 @@ function LoginForm() {
             }}
             className="text-amber-700 hover:text-amber-800 underline"
           >
-            {isNewUser ? "Already have an account? Login" : "Don't have an account? Create one"}
+            {isNewUser ? "Již máte účet? Přihlaste se" : "Nemáte účet? Vytvořte si ho"}
           </button>
         </div>
       </div>

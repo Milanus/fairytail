@@ -12,6 +12,7 @@ export default function BrowseClient() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
+  const [selectedAuthor, setSelectedAuthor] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string } | null>(null);
@@ -68,7 +69,7 @@ export default function BrowseClient() {
     };
   }, [sortBy]);
 
-  // Filter stories based on search term and selected tag
+  // Filter stories based on search term, selected tag, and selected author
   const filteredStories = stories.filter(story => {
     const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (story.excerpt && story.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -76,7 +77,9 @@ export default function BrowseClient() {
 
     const matchesTag = selectedTag === "" || (story.tags || []).includes(selectedTag) || story.category === selectedTag;
 
-    return matchesSearch && matchesTag;
+    const matchesAuthor = selectedAuthor === "" || story.author === selectedAuthor;
+
+    return matchesSearch && matchesTag && matchesAuthor;
   });
 
   // Pagination logic
@@ -89,8 +92,9 @@ export default function BrowseClient() {
     setCurrentPage(page);
   };
 
-  // Get unique tags for filter dropdown
+  // Get unique tags and authors for filter dropdowns
   const allTags = [...new Set(stories.flatMap(story => story.tags || []))];
+  const allAuthors = [...new Set(stories.map(story => story.author))].sort();
 
   const handleDeleteStory = async (storyId: string) => {
     if (confirm("Are you sure you want to delete this story?")) {
@@ -172,7 +176,23 @@ export default function BrowseClient() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            {/* Author Filter */}
+            <div>
+              <label htmlFor="author-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtrovat podle autora</label>
+              <select
+                id="author-filter"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                value={selectedAuthor}
+                onChange={(e) => setSelectedAuthor(e.target.value)}
+              >
+                <option value="">Všichni autoři</option>
+                {allAuthors.map(author => (
+                  <option key={author} value={author}>{author}</option>
+                ))}
+              </select>
+            </div>
             
             {/* Tag Filter */}
             <div>
