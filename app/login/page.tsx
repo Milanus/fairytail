@@ -140,7 +140,7 @@ function LoginForm() {
           setNeedsVerification(true);
           return;
         }
-
+        console.log("User signed in:", user);
         // Store user data in localStorage
         localStorage.setItem("userName", user.displayName);
         localStorage.setItem("userIsAdmin", user.isAdmin.toString());

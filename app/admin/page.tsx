@@ -2,16 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser } from "../../lib/auth";
+import {
+  getCurrentUser,
+  getAllUsers,
+  syncAllUsersToRealtime,
+  deleteUserFromBothDatabases,
+  setUserAdminStatus,
+  UserData,
+  AdminPermissions,
+  getDefaultAdminPermissions
+} from "../../lib/auth";
 import { database, deleteFromStorage } from "../../lib/firebase";
 import { ref, get, remove, set } from "firebase/database";
 import { fetchStoriesOnce } from "../../lib/realtime";
 import Hero from "../../components/Hero";
 
 interface User {
+  uid: string;
   name: string;
+  email: string;
   createdAt: number;
   isAdmin: boolean;
+  source: 'firestore' | 'realtime' | 'both';
+  lastLogin?: number;
 }
 
 interface Story {
@@ -42,74 +55,208 @@ export default function AdminPage() {
   const [generatingAudio, setGeneratingAudio] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const [audioPrompt, setAudioPrompt] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncStats, setSyncStats] = useState<{
+    duplicates: number;
+    onlyInFirestore: number;
+    onlyInRealtime: number;
+  } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('[ADMIN] Fetching admin data...');
       const currentUser = getCurrentUser();
+      console.log('[ADMIN] Current user:', currentUser ? {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        isAdmin: currentUser.isAdmin,
+        email: currentUser.email
+      } : 'null');
+      
       if (!currentUser || !currentUser.isAdmin) {
+        console.log('[ADMIN] Access denied - not authenticated or not admin');
         router.push("/");
         return;
       }
       
+      console.log('[ADMIN] Admin access granted for:', currentUser.displayName);
       setUser({
         name: currentUser.displayName,
         isAdmin: currentUser.isAdmin
       });
 
-      // Fetch users
+      // Fetch users from both databases
       try {
-        const usersRef = ref(database, "users");
-        const usersSnapshot = await get(usersRef);
-        if (usersSnapshot.exists()) {
-          const usersData = usersSnapshot.val();
-          const usersList: User[] = Object.keys(usersData).map(name => ({
-            name,
-            ...usersData[name]
-          }));
-          setUsers(usersList);
-        }
+        console.log('[ADMIN] Fetching users from both databases...');
+        const { firestoreUsers, realtimeUsers, duplicates, onlyInFirestore, onlyInRealtime } = await getAllUsers();
+        
+        // Set sync stats
+        setSyncStats({
+          duplicates: duplicates.length,
+          onlyInFirestore: onlyInFirestore.length,
+          onlyInRealtime: onlyInRealtime.length,
+        });
+
+        // Merge users from both databases
+        const mergedUsers: User[] = [];
+        const processedIds = new Set<string>();
+
+        // Add users that exist in both databases
+        duplicates.forEach(uid => {
+          const firestoreUser = firestoreUsers.find(u => u.uid === uid);
+          const realtimeUser = realtimeUsers.find(u => u.uid === uid);
+          if (firestoreUser) {
+            mergedUsers.push({
+              uid: firestoreUser.uid,
+              name: firestoreUser.displayName,
+              email: firestoreUser.email,
+              createdAt: firestoreUser.createdAt?.toMillis?.() || Date.now(),
+              isAdmin: firestoreUser.isAdmin,
+              source: 'both',
+              lastLogin: realtimeUser?.lastLogin,
+            });
+            processedIds.add(uid);
+          }
+        });
+
+        // Add users only in Firestore
+        onlyInFirestore.forEach(uid => {
+          const user = firestoreUsers.find(u => u.uid === uid);
+          if (user && !processedIds.has(uid)) {
+            mergedUsers.push({
+              uid: user.uid,
+              name: user.displayName,
+              email: user.email,
+              createdAt: user.createdAt?.toMillis?.() || Date.now(),
+              isAdmin: user.isAdmin,
+              source: 'firestore',
+            });
+            processedIds.add(uid);
+          }
+        });
+
+        // Add users only in Realtime Database
+        onlyInRealtime.forEach(uid => {
+          const user = realtimeUsers.find(u => u.uid === uid);
+          if (user && !processedIds.has(uid)) {
+            mergedUsers.push({
+              uid: user.uid,
+              name: user.displayName,
+              email: user.email,
+              createdAt: user.createdAt || Date.now(),
+              isAdmin: user.isAdmin,
+              source: 'realtime',
+              lastLogin: user.lastLogin,
+            });
+            processedIds.add(uid);
+          }
+        });
+
+        console.log('[ADMIN] Users loaded:', {
+          total: mergedUsers.length,
+          both: duplicates.length,
+          firestoreOnly: onlyInFirestore.length,
+          realtimeOnly: onlyInRealtime.length,
+        });
+        setUsers(mergedUsers);
       } catch (error) {
+        console.error('[ADMIN] Error fetching users:', error);
       }
 
       // Fetch all stories and pending stories
       try {
+        console.log('[ADMIN] Fetching stories...');
         const allStories = await fetchStoriesOnce();
         const pendingStoriesList = await fetchStoriesOnce("pending");
+        console.log('[ADMIN] Stories loaded:', {
+          total: allStories.length,
+          pending: pendingStoriesList.length
+        });
         setStories(allStories);
         setPendingStories(pendingStoriesList);
       } catch (error) {
+        console.error('[ADMIN] Error fetching stories:', error);
       }
 
       setLoading(false);
+      console.log('[ADMIN] Data fetching completed');
     };
 
     fetchData();
   }, [router]);
 
-  const handleDeleteUser = async (name: string) => {
-    if (confirm("Are you sure you want to delete this user?")) {
+  const handleDeleteUser = async (userId: string) => {
+    console.log('[ADMIN] Attempting to delete user:', userId);
+    if (confirm("Are you sure you want to delete this user from both databases?")) {
       try {
-        const userRef = ref(database, `users/${name}`);
-        await remove(userRef);
-        setUsers(users.filter(u => u.name !== name));
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          alert("You must be logged in to delete users");
+          return;
+        }
+
+        await deleteUserFromBothDatabases(userId, currentUser as UserData);
+        console.log('[ADMIN] User deleted successfully:', userId);
+        setUsers(users.filter(u => u.uid !== userId));
+        alert("User deleted successfully from both databases!");
       } catch (error) {
+        console.error('[ADMIN] Error deleting user:', userId, error);
+        alert("Failed to delete user. Please try again.");
+      }
+    }
+  };
+
+  const handleSyncAllUsers = async () => {
+    if (confirm("This will sync all users from Firestore to Realtime Database. Continue?")) {
+      setSyncing(true);
+      try {
+        await syncAllUsersToRealtime();
+        alert("All users synced successfully!");
+        // Refresh user list
+        window.location.reload();
+      } catch (error) {
+        console.error('[ADMIN] Error syncing users:', error);
+        alert("Failed to sync users. Please try again.");
+      } finally {
+        setSyncing(false);
+      }
+    }
+  };
+
+  const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
+    const action = currentIsAdmin ? "remove admin rights from" : "grant admin rights to";
+    if (confirm(`Are you sure you want to ${action} this user?`)) {
+      try {
+        await setUserAdminStatus(userId, !currentIsAdmin);
+        setUsers(users.map(u => u.uid === userId ? { ...u, isAdmin: !currentIsAdmin } : u));
+        alert(`Admin status updated successfully!`);
+      } catch (error) {
+        console.error('[ADMIN] Error updating admin status:', error);
+        alert("Failed to update admin status. Please try again.");
       }
     }
   };
 
   const handleApproveStory = async (id: string) => {
+    console.log('[ADMIN] Approving story:', id);
     try {
       const storyRef = ref(database, `fairy_tales/${id}`);
       const storySnapshot = await get(storyRef);
       if (storySnapshot.exists()) {
         const storyData = storySnapshot.val();
+        console.log('[ADMIN] Story data before approval:', { id, title: storyData.title, author: storyData.author });
         await set(storyRef, {
           ...storyData,
           status: "published",
           published_at: Date.now(),
           updated_at: Date.now()
         });
+        console.log('[ADMIN] Story approved successfully:', id);
+      } else {
+        console.log('[ADMIN] Story not found:', id);
       }
 
       // Update local state
@@ -117,18 +264,23 @@ export default function AdminPage() {
       // Refresh all stories
       const allStories = await fetchStoriesOnce();
       setStories(allStories);
+      console.log('[ADMIN] Stories refreshed after approval');
     } catch (error) {
+      console.error('[ADMIN] Error approving story:', id, error);
     }
   };
 
   const handleRejectStory = async (id: string) => {
+    console.log('[ADMIN] Rejecting and deleting story:', id);
     if (confirm("Are you sure you want to reject and delete this story?")) {
       try {
         const storyRef = ref(database, `fairy_tales/${id}`);
         await remove(storyRef);
+        console.log('[ADMIN] Story rejected and deleted:', id);
         setPendingStories(pendingStories.filter(s => s.id !== id));
         setStories(stories.filter(s => s.id !== id));
       } catch (error) {
+        console.error('[ADMIN] Error rejecting story:', id, error);
       }
     }
   };
@@ -143,6 +295,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteStory = async (id: string) => {
+    console.log('[ADMIN] Attempting to delete story:', id);
     if (confirm("Are you sure you want to delete this story?")) {
       try {
         // First, get the story data to access file URLs
@@ -150,6 +303,14 @@ export default function AdminPage() {
         const storySnapshot = await get(storyRef);
         if (storySnapshot.exists()) {
           const storyData = storySnapshot.val();
+          console.log('[ADMIN] Story data for deletion:', {
+            id,
+            title: storyData.title,
+            author: storyData.author,
+            hasImage: !!storyData.story_image_url,
+            hasAudio: !!storyData.audio_url,
+            additionalImages: storyData.image_urls?.length || 0
+          });
 
           // Delete associated files from storage
           const filesToDelete = [];
@@ -159,21 +320,32 @@ export default function AdminPage() {
             filesToDelete.push(...storyData.image_urls);
           }
 
+          console.log('[ADMIN] Files to delete:', filesToDelete.length);
+
           // Delete files from storage (don't block on errors)
           const deletePromises = filesToDelete.map(url => deleteFromStorage(url).catch(() => {}));
           await Promise.allSettled(deletePromises);
+          console.log('[ADMIN] Storage files deletion attempted');
         }
 
         // Delete the story from database
         await remove(storyRef);
+        console.log('[ADMIN] Story deleted from database:', id);
         setStories(stories.filter(s => s.id !== id));
         setPendingStories(pendingStories.filter(s => s.id !== id));
       } catch (error) {
+        console.error('[ADMIN] Error deleting story:', id, error);
       }
     }
   };
 
   const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
+    const newFeaturedStatus = !currentFeatured;
+    console.log('[ADMIN] Toggling featured status:', {
+      id,
+      current: currentFeatured,
+      new: newFeaturedStatus
+    });
     try {
       const storyRef = ref(database, `fairy_tales/${id}`);
       const storySnapshot = await get(storyRef);
@@ -181,14 +353,21 @@ export default function AdminPage() {
         const storyData = storySnapshot.val();
         await set(storyRef, {
           ...storyData,
-          is_featured: !currentFeatured,
+          is_featured: newFeaturedStatus,
           updated_at: Date.now()
         });
+        console.log('[ADMIN] Featured status updated successfully:', {
+          id,
+          newStatus: newFeaturedStatus
+        });
+      } else {
+        console.log('[ADMIN] Story not found for featured toggle:', id);
       }
 
       // Update local state
-      setStories(stories.map(s => s.id === id ? { ...s, is_featured: !currentFeatured } : s));
+      setStories(stories.map(s => s.id === id ? { ...s, is_featured: newFeaturedStatus } : s));
     } catch (error) {
+      console.error('[ADMIN] Error toggling featured status:', id, error);
     }
   };
 
@@ -639,30 +818,103 @@ export default function AdminPage() {
             <p className="text-gray-600 mb-8">No pending stories to review.</p>
           )}
 
-          <h2 className="text-2xl font-semibold text-black mb-4">Users</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-black">Users Management</h2>
+            <button
+              onClick={handleSyncAllUsers}
+              disabled={syncing}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {syncing ? 'Syncing...' : '🔄 Sync All Users to Realtime DB'}
+            </button>
+          </div>
+
+          {syncStats && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-blue-900 mb-2">Database Sync Status:</h3>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="bg-white p-3 rounded border border-blue-100">
+                  <p className="text-gray-600">Synced (Both DBs)</p>
+                  <p className="text-2xl font-bold text-green-600">{syncStats.duplicates}</p>
+                </div>
+                <div className="bg-white p-3 rounded border border-blue-100">
+                  <p className="text-gray-600">Only in Firestore</p>
+                  <p className="text-2xl font-bold text-orange-600">{syncStats.onlyInFirestore}</p>
+                </div>
+                <div className="bg-white p-3 rounded border border-blue-100">
+                  <p className="text-gray-600">Only in Realtime DB</p>
+                  <p className="text-2xl font-bold text-red-600">{syncStats.onlyInRealtime}</p>
+                </div>
+              </div>
+              {(syncStats.onlyInFirestore > 0 || syncStats.onlyInRealtime > 0) && (
+                <p className="mt-2 text-sm text-orange-700">
+                  ⚠️ Some users are not synced between databases. Click "Sync All Users" to synchronize.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white">
+            <table className="min-w-full bg-white border">
               <thead>
-                <tr>
-                  <th className="py-2 px-4 border-b text-black">Username</th>
-                  <th className="py-2 px-4 border-b text-black">Admin</th>
-                  <th className="py-2 px-4 border-b text-black">Created</th>
-                  <th className="py-2 px-4 border-b text-black">Actions</th>
+                <tr className="bg-gray-50">
+                  <th className="py-2 px-4 border-b text-left text-black">Email</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Username</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Admin</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Database</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Created</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Last Login</th>
+                  <th className="py-2 px-4 border-b text-left text-black">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(u => (
-                  <tr key={u.name} className="text-black">
-                    <td className="py-2 px-4 border-b">{u.name}</td>
-                    <td className="py-2 px-4 border-b">{u.isAdmin ? "Yes" : "No"}</td>
-                    <td className="py-2 px-4 border-b">{new Date(u.createdAt).toLocaleDateString()}</td>
+                  <tr key={u.uid} className="text-black hover:bg-gray-50">
+                    <td className="py-2 px-4 border-b text-sm">{u.email}</td>
+                    <td className="py-2 px-4 border-b font-medium">{u.name}</td>
                     <td className="py-2 px-4 border-b">
-                      <button
-                        onClick={() => handleDeleteUser(u.name)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Delete
-                      </button>
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${
+                        u.isAdmin
+                          ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {u.isAdmin ? '👑 Admin' : 'User'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${
+                        u.source === 'both'
+                          ? 'bg-green-100 text-green-800 border border-green-300'
+                          : u.source === 'firestore'
+                          ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                          : 'bg-red-100 text-red-800 border border-red-300'
+                      }`}>
+                        {u.source === 'both' ? '✓ Both' : u.source === 'firestore' ? 'Firestore' : 'Realtime'}
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b text-sm">{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td className="py-2 px-4 border-b text-sm">
+                      {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="py-2 px-4 border-b">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleToggleAdmin(u.uid, u.isAdmin)}
+                          className={`px-3 py-1 text-xs rounded ${
+                            u.isAdmin
+                              ? 'bg-orange-600 text-white hover:bg-orange-700'
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                          }`}
+                        >
+                          {u.isAdmin ? 'Remove Admin' : 'Make Admin'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(u.uid)}
+                          className="bg-red-600 text-white px-3 py-1 text-xs rounded hover:bg-red-700"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
