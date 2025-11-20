@@ -26,7 +26,7 @@ export default function VerificationPage() {
 
   const handleResendEmail = async () => {
     if (!email) {
-      setMessage("Please enter your email address");
+      setMessage("Prosím zadejte svou e-mailovou adresu");
       return;
     }
 
@@ -35,12 +35,12 @@ export default function VerificationPage() {
 
     try {
       await resendVerificationEmail();
-      setMessage("Verification email sent! Please check your inbox.");
+      setMessage("Ověřovací e-mail byl odeslán! Zkontrolujte prosím svou schránku.");
     } catch (error) {
       if (error instanceof Error) {
         setMessage(error.message);
       } else {
-        setMessage("Failed to resend verification email. Please try again.");
+        setMessage("Nepodařilo se znovu odeslat ověřovací e-mail. Zkuste to prosím znovu.");
       }
     } finally {
       setIsLoading(false);
@@ -50,8 +50,8 @@ export default function VerificationPage() {
   return (
     <>
       <Hero
-        title="Account Verification"
-        subtitle="Please check your email to verify your account."
+        title="Ověření účtu"
+        subtitle="Zkontrolujte prosím svůj e-mail pro ověření účtu."
         height="sm"
       />
       
@@ -76,32 +76,26 @@ export default function VerificationPage() {
             </div>
 
             {/* Main Message */}
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Account Created Successfully!
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">
+              Účet byl úspěšně vytvořen!
             </h1>
-            
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">
-              Účet byl vytvořen!
-            </h2>
-
-            {/* English Description */}
-            <p className="text-gray-600 mb-4">
-              Your account has been created. Please check your email and click the verification link to complete registration.
-            </p>
 
             {/* Czech Description */}
-            <p className="text-gray-600 mb-6">
-              Skontrolujte si mail a kliknite na ověřovací odkaz pro dokončení registrace.
+            <p className="text-gray-600 mb-4">
+              Váš účet byl vytvořen. Zkontrolujte prosím svůj e-mail a klikněte na ověřovací odkaz pro dokončení registrace.
             </p>
+
+            {/* Spam Warning */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-yellow-800 font-medium">
+                ⚠️ Zkontrolujte také složku SPAM/Nevyžádaná pošta
+              </p>
+            </div>
 
             {/* Email Resend Section */}
             <div className="border-t pt-6 mt-6">
               <p className="text-sm text-gray-500 mb-4">
-                Didn't receive the email? Check your spam folder or resend below.
-              </p>
-              
-              <p className="text-sm text-gray-500 mb-4">
-                Nedostali jste email? Zkontrolujte spam nebo zašlete znovu níže.
+                Nedostali jste e-mail? Zkontrolujte spam nebo zašlete znovu níže.
               </p>
 
               {!showEmailInput ? (
@@ -109,13 +103,13 @@ export default function VerificationPage() {
                   onClick={() => setShowEmailInput(true)}
                   className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-6 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg"
                 >
-                  Resend Verification Email
+                  Znovu odeslat ověřovací e-mail
                 </button>
               ) : (
                 <div className="max-w-md mx-auto">
                   <div className="mb-4">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
+                      E-mailová adresa
                     </label>
                     <input
                       type="email"
@@ -123,7 +117,7 @@ export default function VerificationPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      placeholder="Enter your email address"
+                      placeholder="Zadejte svou e-mailovou adresu"
                       required
                     />
                   </div>
@@ -134,7 +128,7 @@ export default function VerificationPage() {
                       disabled={isLoading}
                       className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 py-2 px-6 rounded-full hover:from-amber-400 hover:to-yellow-500 transition focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isLoading ? "Sending..." : "Send Email"}
+                      {isLoading ? "Odesílání..." : "Odeslat e-mail"}
                     </button>
                     
                     <button
@@ -145,7 +139,7 @@ export default function VerificationPage() {
                       }}
                       className="bg-gray-500 text-white py-2 px-6 rounded-full hover:bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Zrušit
                     </button>
                   </div>
                 </div>
@@ -165,35 +159,25 @@ export default function VerificationPage() {
             {/* Back to Login */}
             <div className="border-t pt-6 mt-6">
               <p className="text-sm text-gray-500 mb-3">
-                Already verified your email?
+                Již jste ověřili svůj e-mail?
               </p>
               <button
                 onClick={() => router.push("/login")}
                 className="text-amber-700 hover:text-amber-800 underline font-medium"
               >
-                Go to Login
+                Přejít na přihlášení
               </button>
             </div>
 
             {/* Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
               <h3 className="font-semibold text-blue-900 mb-2">
-                Instructions:
-              </h3>
-              <ol className="text-sm text-blue-800 text-left space-y-1">
-                <li>1. Check your email inbox</li>
-                <li>2. Look for an email from FairyTale</li>
-                <li>3. Click the verification link in the email</li>
-                <li>4. Return to this page and go to login</li>
-              </ol>
-              
-              <h3 className="font-semibold text-blue-900 mb-2 mt-4">
                 Pokyny:
               </h3>
               <ol className="text-sm text-blue-800 text-left space-y-1">
-                <li>1. Zkontrolujte svou emailovou schránku</li>
-                <li>2. Hledejte email od FairyTale</li>
-                <li>3. Klikněte na ověřovací odkaz v emailu</li>
+                <li>1. Zkontrolujte svou e-mailovou schránku</li>
+                <li>2. Hledejte e-mail od FairyTale</li>
+                <li>3. Klikněte na ověřovací odkaz v e-mailu</li>
                 <li>4. Vraťte se na tuto stránku a přejděte na přihlášení</li>
               </ol>
             </div>
