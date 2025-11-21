@@ -14,7 +14,7 @@ export default function StoryPageClient({ id }: { id: string }) {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const WORDS_PER_PAGE = 500; // Adjust this number as needed
+  const WORDS_PER_PAGE = 200; // Reduced for better mobile reading
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -152,9 +152,13 @@ export default function StoryPageClient({ id }: { id: string }) {
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
           <div className="p-8">
 
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">{story.title}</h1>
+            <h1 className="text-3xl font-normal text-black mb-4 font-serif leading-tight text-center">{story.title}</h1>
             {story.description && (
-              <p className="text-lg text-gray-600 mb-4 italic">{story.description}</p>
+              <div className="text-lg text-gray-800 mb-6 italic font-normal text-center">
+                {story.description.split('\n').map((line, index) => (
+                  <p key={index} className={index > 0 ? 'mt-3' : ''}>{line}</p>
+                ))}
+              </div>
             )}
 
             <div className="flex flex-wrap items-center justify-between mb-6">
@@ -215,9 +219,13 @@ export default function StoryPageClient({ id }: { id: string }) {
               ))}
             </div>
 
-            <div className="prose max-w-none text-gray-800">
+            <div className="prose prose-lg max-w-none text-gray-800 font-serif leading-relaxed">
               {paginatedContent.map((paragraph, index) => (
-                <p key={index} className="mb-4">{paragraph}</p>
+                <div key={index} className="mb-6">
+                  {paragraph.split('\n').map((line, lineIndex) => (
+                    <p key={lineIndex} className={`text-lg font-normal leading-relaxed text-gray-800 ${lineIndex > 0 ? 'mt-4' : ''}`}>{line}</p>
+                  ))}
+                </div>
               ))}
             </div>
 
