@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cinzel, Quicksand } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Header from "../components/Header";
 import CookieConsent from "../components/CookieConsent";
@@ -112,6 +113,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
