@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cinzel, Quicksand } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
+import CookieConsent from "../components/CookieConsent";
 
 const cinzel = Cinzel({
   variable: "--font-cinzel",
@@ -85,38 +86,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gtmScript = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TNVF9N67');`;
-
   return (
     <html lang="en">
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: gtmScript,
-          }}
-        />
       </head>
       <body
         className={`${cinzel.variable} ${quicksand.variable} antialiased min-h-screen flex flex-col`}
         lang="cs"
       >
-        {/* Google Tag Manager (noscript) */}
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TNVF9N67"
-        height="0" width="0" style={{ display: 'none', visibility: 'hidden' }}></iframe></noscript>
-        {/* End Google Tag Manager (noscript) */}
         
         <Header />
         <main className="flex-grow">
           {children}
         </main>
+        <CookieConsent />
         <footer className="bg-gray-800 text-white py-8">
           <div className="container mx-auto px-4">
-            <div className="text-center">
+            <div className="text-center space-y-2">
               <p>&copy; {new Date().getFullYear()} Pohádková Platforma. Všechna práva vyhrazena.</p>
+              <p>
+                <a href="/gdpr" className="text-gray-400 hover:text-white transition-colors">
+                  Ochrana osobních údajů (GDPR)
+                </a>
+              </p>
             </div>
           </div>
         </footer>
