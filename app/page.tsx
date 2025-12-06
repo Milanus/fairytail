@@ -14,10 +14,14 @@ export default async function Home() {
   });
 
   // Get featured stories first, then fill with other published stories (both sorted by date)
-  const featuredStories = [
-    ...sortedStories.filter(story => story.is_featured === true),
-    ...sortedStories.filter(story => story.is_featured !== true)
-  ];
+  const featured = sortedStories.filter(story => story.is_featured === true);
+
+  const nonFeatured = sortedStories
+  .filter(story => story.is_featured !== true)
+  .sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
+
+ const featuredStories = [...featured, ...nonFeatured];
+
 
   // Function to create a preview of the content (first 100 characters)
   const createContentPreview = (content: string) => {
