@@ -7,7 +7,11 @@ import { database } from "../../../lib/firebase";
 import { getCurrentUser } from "../../../lib/auth";
 import Link from "next/link";
 
-export default function EditStoryClient({ id }: { id: string }) {
+export default function EditClient({ 
+  id 
+}: { 
+  id: string 
+}) {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");

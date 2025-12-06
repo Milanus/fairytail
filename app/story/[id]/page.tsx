@@ -74,8 +74,12 @@ export async function generateMetadata({ params }: any): Promise<Metadata> {
   }
 }
 
-export default async function StoryPage({ params }: any) {
-  const { id } = await Promise.resolve(params);
+export default async function StoryPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  const { id } = await params;
 
   const baseUrl = "https://fairytail-platform.web.app";
   const url = `${baseUrl}/story/${id}`;
