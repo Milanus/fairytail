@@ -14,6 +14,11 @@ export default function BrowseClient() {
   const [selectedTag, setSelectedTag] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const sortOptions = [
+  { value: "newest", label: "✨ Nejnovější" },
+  { value: "oldest", label: "🕰️ Nejstarší" },
+  { value: "topRated", label: "⭐ Nejlépe hodnocené" },
+  ];
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ name: string } | null>(null);
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
@@ -46,27 +51,37 @@ export default function BrowseClient() {
 
   useEffect(() => {
     setLoading(true);
+    const unsubscribe = subscribeToStories((data) => {
+      const withSort = [...(data || [])];
+      
+      // Helper function to get created_at value
+      const getCreatedAt = (story: Story): number => {
+        const raw = (story as any).created_at ?? (story as any).createdAt;
+        if (typeof raw === "number") return raw;
+        if (typeof raw === "string") {
+          const parsed = Date.parse(raw);
+          return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+      };
 
-    // Use realtime subscription (updates automatically)
-    const unsubscribe = subscribeToStories((data: Story[]) => {
-      // optional sorting client-side
-      let items: Story[] = data || [];
+      // Helper function to get likes value
+      const getLikes = (story: Story): number => {
+        return (story as any).likes_count ?? (story as any).likes ?? 0;
+      };
+
       if (sortBy === "newest") {
-        items = items.sort((a: Story, b: Story) => {
-          const ta = typeof a.created_at === "number" ? a.created_at : Date.parse(String(a.created_at) || "0");
-          const tb = typeof b.created_at === "number" ? b.created_at : Date.parse(String(b.created_at) || "0");
-          return tb - ta;
-        });
-      } else if (sortBy === "popular") {
-        items = items.sort((a: Story, b: Story) => (b.likes_count || 0) - (a.likes_count || 0));
+        withSort.sort((a, b) => getCreatedAt(b) - getCreatedAt(a));
+      } else if (sortBy === "oldest") {
+        withSort.sort((a, b) => getCreatedAt(a) - getCreatedAt(b));
+      } else if (sortBy === "topRated") {
+        withSort.sort((a, b) => getLikes(b) - getLikes(a));
       }
-      setStories(items);
+      
+      setStories(withSort);
       setLoading(false);
-    }, "published"); // Only show published stories
-
-    return () => {
-      unsubscribe(); // cleanup realtime listener
-    };
+    });
+    return () => unsubscribe();
   }, [sortBy]);
 
   // Filter stories based on search term, selected tag, and selected author
@@ -170,7 +185,7 @@ export default function BrowseClient() {
               type="text"
               id="search"
               placeholder="Hledat příběhy, autory..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none text-black placeholder:text-black"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -180,14 +195,14 @@ export default function BrowseClient() {
             
             {/* Author Filter */}
             <div>
-              <label htmlFor="author-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtrovat podle autora</label>
+              <label htmlFor="author-filter" className="block text-sm font-medium text-black mb-1">Filtrovat podle autora</label>
               <select
                 id="author-filter"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-black bg-white"
                 value={selectedAuthor}
                 onChange={(e) => setSelectedAuthor(e.target.value)}
               >
-                <option value="">Všichni autoři</option>
+                <option value=""className="text-black">Všichni autoři</option>
                 {allAuthors.map(author => (
                   <option key={author} value={author}>{author}</option>
                 ))}
@@ -199,7 +214,7 @@ export default function BrowseClient() {
               <label htmlFor="tag-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtrovat podle štítku</label>
               <select
                 id="tag-filter"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-black bg-white"
                 value={selectedTag}
                 onChange={(e) => setSelectedTag(e.target.value)}
               >
@@ -215,12 +230,13 @@ export default function BrowseClient() {
               <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">Řadit podle</label>
               <select
                 id="sort"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-black bg-white"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="newest">Nejnovější první</option>
-                <option value="popular">Nejoblíbenější</option>
+                 {sortOptions.map(option => (
+      <option key={option.value} value={option.value}>{option.label}</option>
+    ))}
               </select>
             </div>
           </div>
