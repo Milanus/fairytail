@@ -17,6 +17,7 @@ export default function StoryPageClient({ id }: { id: string }) {
   const WORDS_PER_PAGE = 200; // Reduced for better mobile reading
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -119,6 +120,33 @@ export default function StoryPageClient({ id }: { id: string }) {
     }
   };
 
+  const handleShare = async () => {
+    if (!story) return;
+
+    const fallbackUrl = `https://fairytail-platform.web.app/story/${story.id}`;
+    const url = typeof window !== "undefined" ? window.location.href : fallbackUrl;
+    const textSource = story.description && story.description.trim().length > 0 ? story.description : story.content;
+    const shareText = textSource ? `${textSource.slice(0, 140)}${textSource.length > 140 ? "..." : ""}` : "Přečtěte si tuto pohádku";
+
+    try {
+      const nav: any = typeof navigator !== "undefined" ? navigator : null;
+
+      if (nav && nav.share) {
+        await nav.share({ title: story.title, text: shareText, url });
+        setShareMessage("Sdíleno ✨");
+      } else if (nav && nav.clipboard && nav.clipboard.writeText) {
+        await nav.clipboard.writeText(url);
+        setShareMessage("Odkaz zkopírován 📋");
+      } else {
+        setShareMessage("Sdílení není podporováno v tomto prohlížeči");
+      }
+    } catch (error) {
+      setShareMessage("Sdílení se nepodařilo, zkuste znovu");
+    }
+
+    setTimeout(() => setShareMessage(null), 2500);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-yellow-50 flex items-center justify-center">
@@ -161,31 +189,44 @@ export default function StoryPageClient({ id }: { id: string }) {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between mb-6">
+            <div className="flex flex-col space-y-4 mb-6">
               <div className="flex items-center">
                 <span className="text-gray-600">od</span>
                 <span className="ml-2 font-medium text-amber-700">{story.author}</span>
               </div>
-              <div className="flex items-center space-x-4">
-                {story.audio_url && (
-                  <div className="w-full mt-4">
-                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <span className="text-purple-700 font-medium">🎵 Audio pohádky</span>
-                      </div>
-                      <audio
-                        controls
-                        src={story.audio_url}
-                        preload="metadata"
-                        className="w-full"
-                        onError={() => {}}
-                      />
-                      <p className="text-xs text-gray-500 mt-2">
-                        Pokud audio nefunguje, zkontrolujte konzoli pro detaily chyby
-                      </p>
+
+              {story.audio_url && (
+                <div className="w-full">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <span className="text-purple-700 font-medium">🎵 Audio pohádky</span>
                     </div>
+                    <audio
+                      controls
+                      src={story.audio_url}
+                      preload="metadata"
+                      className="w-full"
+                      onError={() => {}}
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Pokud audio nefunguje, zkontrolujte konzoli pro detaily chyby
+                    </p>
                   </div>
-                )}
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-start gap-3">
+                <button
+                  onClick={handleShare}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                  title="Sdílet pohádku"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 8a3 3 0 10-6 0 3 3 0 006 0zM6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                  </svg>
+                  <span>Sdílet</span>
+                </button>
+
                 {currentUser && (
                   <button
                     onClick={handleLike}
@@ -202,6 +243,7 @@ export default function StoryPageClient({ id }: { id: string }) {
                     <span>{isLiked ? "Líbí se" : "Líbí se"}</span>
                   </button>
                 )}
+
                 <span className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-semibold px-3 py-1 rounded-full border border-amber-200">
                   {likesCount} likes
                 </span>
@@ -209,6 +251,12 @@ export default function StoryPageClient({ id }: { id: string }) {
                   {story.views_count} zobrazení
                 </span>
               </div>
+
+              {shareMessage && (
+                <div className="text-sm text-emerald-700 text-center" role="status">
+                  {shareMessage}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 mb-8">

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
 import { useRouter } from "next/navigation";
 import { ref, update, get, set } from "firebase/database";
-import { database } from "../../../lib/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { database, storage } from "../../../lib/firebase";
 import { getCurrentUser } from "../../../lib/auth";
 import Link from "next/link";
 
@@ -22,6 +24,9 @@ export default function EditClient({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
   const router = useRouter();
   const storyId = id;
 
@@ -52,7 +57,9 @@ export default function EditClient({
           setContent(storyData.content || "");
           setTags(storyData.tags ? storyData.tags.join(", ") : "");
           setCategory(storyData.category || "");
+          setAudioUrl(storyData.audio_url || ""); // <— NEW
           setIsOwner(true);
+
         } else {
           setError("Story not found.");
         }
@@ -130,6 +137,38 @@ export default function EditClient({
     return null;
   };
 
+  const handleAudioUpload = async (file: File | null) => {
+    if (!file) {
+      setAudioUrl("");
+      return;
+    }
+
+    if (!file.type.startsWith('audio/')) {
+      alert('Prosím vyberte platný audio soubor.');
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      alert('Audio soubor je příliš velký. Maximální velikost je 50MB.');
+      return;
+    }
+
+    setUploadingAudio(true);
+    try {
+      const audioRef = storageRef(storage, `fairy_tales/${author}/${Date.now()}-${file.name}`);
+      const audioSnapshot = await uploadBytes(audioRef, file);
+      const downloadURL = await getDownloadURL(audioSnapshot.ref);
+      setAudioUrl(downloadURL);
+      setAudioFile(file);
+      alert('Audio soubor byl úspěšně nahrán!');
+    } catch (error) {
+      alert('Nahrávání audio souboru se nezdařilo. Zkuste to prosím znovu.');
+      console.error("Audio upload error:", error);
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
@@ -139,6 +178,8 @@ export default function EditClient({
       const sanitizedTitle = sanitizeInput(title);
       const sanitizedContent = sanitizeInput(content);
       const sanitizedTags = sanitizeInput(tags);
+      const sanitizedAudioUrl = sanitizeInput(audioUrl);
+
 
       // Validate inputs
       const titleError = validateInput(sanitizedTitle, "Title", 200);
@@ -171,6 +212,7 @@ export default function EditClient({
         content: sanitizedContent,
         tags: tagList,
         category,
+        audio_url: sanitizedAudioUrl || null, // <— NEW
         status: "pending", // Reset to pending for re-approval
         updated_at: Date.now()
       });
@@ -327,6 +369,69 @@ export default function EditClient({
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="e.g., adventure, magic, romance"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Audio soubor pohádky (volitelné)
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {audioFile ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-600">🎵</span>
+                        <span className="text-sm text-gray-700">{audioFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAudioFile(null);
+                            setAudioUrl("");
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                          disabled={uploadingAudio}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : audioUrl ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-blue-600">🔗</span>
+                        <span className="text-sm text-gray-700">Stávající audio soubor</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAudioUrl("");
+                          }}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          ✕ Odstranit
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex-1">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('audio-input')?.click()}
+                          className="bg-gradient-to-r from-amber-500 to-yellow-600 text-green-900 px-4 py-2 rounded-full hover:from-amber-400 hover:to-yellow-500 transition font-medium shadow-lg text-sm"
+                          disabled={uploadingAudio}
+                        >
+                          {uploadingAudio ? 'Nahrávání...' : '🎵 Vybrat audio soubor pohádky'}
+                        </button>
+                        <p className="mt-1 text-xs text-gray-500">
+                          MP3, WAV, OGG až 50MB - nahrajte zvukovou verzi vaší pohádky
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="audio-input"
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      handleAudioUpload(file);
+                    }}
+                    className="hidden"
                   />
                 </div>
 
