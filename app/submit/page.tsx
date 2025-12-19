@@ -29,6 +29,7 @@ export default function SubmitStory() {
    const [lastSubmissionTime, setLastSubmissionTime] = useState<number>(0);
    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
    const [audioFile, setAudioFile] = useState<File | null>(null);
+   const [videoUrl, setVideoUrl] = useState("");
    const [category, setCategory] = useState("");
    const [categories, setCategories] = useState<string[]>([]);
    const router = useRouter();
@@ -269,6 +270,12 @@ export default function SubmitStory() {
     return null;
   };
 
+  const validateYouTubeUrl = (url: string): boolean => {
+    if (!url) return true; // Optional field
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+/;
+    return youtubeRegex.test(url);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -308,6 +315,13 @@ export default function SubmitStory() {
       if (!category) {
         setStatus("error");
         setError("Kategorie je povinná");
+        return;
+      }
+
+      // Validate YouTube URL if provided
+      if (videoUrl && !validateYouTubeUrl(videoUrl)) {
+        setStatus("error");
+        setError("Prosím zadejte platnou YouTube URL (např. https://www.youtube.com/watch?v=...)");
         return;
       }
 
@@ -377,7 +391,8 @@ export default function SubmitStory() {
         views_count: 0,
         image_urls: imageUrls, // Add image URLs to story data
         story_image_url: storyImageUrl, // Add story image URL to story data
-        audio_url: audioUrl // Add audio URL to story data
+        audio_url: audioUrl, // Add audio URL to story data
+        video_url: videoUrl, // Add video URL to story data
       };
 
       // Push the story to the database
@@ -889,6 +904,23 @@ export default function SubmitStory() {
                     }}
                     className="hidden"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                    YouTube URL (volitelné)
+                  </label>
+                  <input
+                    type="url"
+                    id="videoUrl"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Přidejte YouTube video k vašemu příběhu
+                  </p>
                 </div>
 
                 <div>

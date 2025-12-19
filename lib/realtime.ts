@@ -21,6 +21,7 @@ export interface Story {
   image_urls?: string[]; // Story images
   story_image_url?: string; // Single story image
   audio_url?: string; // Audio file URL
+  video_url?: string; // YouTube video URL
   is_featured?: boolean; // Featured story flag
   likes?: number; // For client-side sorting compatibility
   createdAt?: number | string; // For client-side sorting compatibility

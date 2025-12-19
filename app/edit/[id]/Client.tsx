@@ -27,6 +27,7 @@ export default function EditClient({
   const [audioUrl, setAudioUrl] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
   const router = useRouter();
   const storyId = id;
 
@@ -57,7 +58,8 @@ export default function EditClient({
           setContent(storyData.content || "");
           setTags(storyData.tags ? storyData.tags.join(", ") : "");
           setCategory(storyData.category || "");
-          setAudioUrl(storyData.audio_url || ""); // <— NEW
+          setAudioUrl(storyData.audio_url || "");
+          setVideoUrl(storyData.video_url || "");
           setIsOwner(true);
 
         } else {
@@ -137,6 +139,12 @@ export default function EditClient({
     return null;
   };
 
+  const validateYouTubeUrl = (url: string): boolean => {
+    if (!url) return true; // Optional field
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[ \w-]+/;
+    return youtubeRegex.test(url);
+  };
+
   const handleAudioUpload = async (file: File | null) => {
     if (!file) {
       setAudioUrl("");
@@ -202,6 +210,13 @@ export default function EditClient({
         return;
       }
 
+      // Validate YouTube URL if provided
+      if (videoUrl && !validateYouTubeUrl(videoUrl)) {
+        setStatus("error");
+        setError("Prosím zadejte platnou YouTube URL (např. https://www.youtube.com/watch?v=...)");
+        return;
+      }
+
       const tagList = sanitizedTags.split(",").map((tag) => tag.trim()).filter((tag) => tag.length > 0);
 
       // Update the story in Firebase
@@ -212,7 +227,8 @@ export default function EditClient({
         content: sanitizedContent,
         tags: tagList,
         category,
-        audio_url: sanitizedAudioUrl || null, // <— NEW
+        audio_url: sanitizedAudioUrl || null,
+        video_url: videoUrl || null,
         status: "pending", // Reset to pending for re-approval
         updated_at: Date.now()
       });
@@ -433,6 +449,23 @@ export default function EditClient({
                     }}
                     className="hidden"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                    YouTube URL (volitelné)
+                  </label>
+                  <input
+                    type="url"
+                    id="videoUrl"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-gray-800"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Přidejte YouTube video k vašemu příběhu
+                  </p>
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

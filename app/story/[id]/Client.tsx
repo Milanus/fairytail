@@ -17,6 +17,10 @@ export default function StoryPageClient({ id }: { id: string }) {
   const WORDS_PER_PAGE = 200; // Reduced for better mobile reading
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const getYouTubeVideoId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+    return match ? match[1] : null;
+  };
   const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -211,6 +215,26 @@ export default function StoryPageClient({ id }: { id: string }) {
                     <p className="text-xs text-gray-500 mt-2">
                       Pokud audio nefunguje, zkontrolujte konzoli pro detaily chyby
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {story.video_url && (
+                <div className="w-full">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <span className="text-purple-700 font-medium">🎥 Video pohádky</span>
+                    </div>
+                    <div className="aspect-video">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${getYouTubeVideoId(story.video_url)}`}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full rounded-lg"
+                      ></iframe>
+                    </div>
                   </div>
                 </div>
               )}
