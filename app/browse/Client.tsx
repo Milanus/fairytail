@@ -356,31 +356,6 @@ export default function BrowseClient() {
                     </span>
                   </div>
 
-                  {/* Video Preview */}
-                  {story.video_url && (() => {
-                    const youtubeRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]+)/;
-                    const match = story.video_url.match(youtubeRegex);
-                    if (match && match[1]) {
-                      return (
-                        <div className="mb-4">
-                          <div className="relative aspect-video rounded-lg overflow-hidden border-2 border-red-200">
-                            <iframe
-                              src={`https://www.youtube.com/embed/${match[1]}`}
-                              title="YouTube video preview"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              className="absolute inset-0 w-full h-full"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-red-600 text-sm font-medium">🎬</span>
-                            <span className="text-red-600 text-sm">Video k pohádce</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
                   {story.description && (
                     <div className="text-gray-800 mb-3 italic text-sm font-normal">
                       {story.description.split('\n').map((line, index) => (
