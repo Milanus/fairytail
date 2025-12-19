@@ -32,13 +32,13 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: `
               default-src 'self';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebasedatabase.app https://www.google.com https://www.gstatic.com https://*.google.com https://www.recaptcha.net https://www.gstatic.cn;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebasedatabase.app https://www.google.com https://www.gstatic.com;
               style-src 'self' 'unsafe-inline' https://*.web.app;
               img-src 'self' data: https:;
               media-src 'self' https: data: https://www.soundjay.com https://firebasestorage.googleapis.com https://*.firebasestorage.app;
               font-src 'self';
               connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app https://apis.google.com https://firebasestorage.googleapis.com;
-              frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://www.recaptcha.net;
+              frame-src https://www.youtube.com https://www.youtube-nocookie.com;
               frame-ancestors 'none';
             `.replace(/\s+/g, ' ').trim()
           }
