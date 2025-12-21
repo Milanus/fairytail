@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
               media-src 'self' https: data: https://www.soundjay.com https://firebasestorage.googleapis.com https://*.firebasestorage.app;
               font-src 'self';
               connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.google.com https://*.firebase.com https://*.firebasedatabase.app https://apis.google.com https://firebasestorage.googleapis.com;
-              frame-src https://www.youtube.com https://www.youtube-nocookie.com;
+              frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.firebasedatabase.app https://*.firebaseio.com;
               frame-ancestors 'none';
             `.replace(/\s+/g, ' ').trim()
           }
