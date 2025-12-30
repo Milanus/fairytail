@@ -77,6 +77,7 @@ export default function Header() {
               <li><Link href="/" className="text-amber-200 hover:text-yellow-300 font-medium font-serif transition text-lg">Domů</Link></li>
               <li><Link href="/browse" className="text-emerald-100 hover:text-amber-200 font-serif transition text-lg">Procházet Příběhy</Link></li>
               <li><Link href="/submit" className="text-emerald-100 hover:text-amber-200 font-serif transition text-lg">Sdílet Příběh</Link></li>
+              <li><Link href="/playlist" className="text-emerald-100 hover:text-amber-200 font-serif transition text-lg">Playlist</Link></li>
             </ul>
           </nav>
 
@@ -163,6 +164,15 @@ export default function Header() {
                     onClick={closeMobileMenu}
                   >
                     ✍️ Sdílet Příběh
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/playlist" 
+                    className="block text-emerald-100 hover:text-amber-200 font-serif transition text-lg py-2"
+                    onClick={closeMobileMenu}
+                  >
+                    🎵 Playlist
                   </Link>
                 </li>
               </ul>
